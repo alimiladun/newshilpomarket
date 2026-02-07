@@ -27,10 +27,15 @@ export default function ProductDetailPage({ params }) {
   const fetchProduct = async () => {
     try {
       setLoading(true);
+      console.log('Fetching product with ID:', productId);
+      console.log('API URL:', `${API_BASE_URL}/api/products/${productId}`);
+      
       const response = await fetch(`${API_BASE_URL}/api/products/${productId}`);
+      console.log('Response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Product data:', data);
         const fetchedProduct = data.product;
         setProduct(fetchedProduct);
         setQuantity(fetchedProduct.minOrder || 5);
@@ -39,9 +44,14 @@ export default function ProductDetailPage({ params }) {
         if (fetchedProduct.category) {
           fetchRelatedProducts(fetchedProduct.category, productId);
         }
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error('Failed to fetch product:', response.status, errorData);
+        setProduct(null);
       }
     } catch (error) {
       console.error('Error fetching product:', error);
+      setProduct(null);
     } finally {
       setLoading(false);
     }

@@ -8,11 +8,14 @@ export async function GET(request, { params }) {
   try {
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
+    console.log('Fetching product with ID:', id);
     
     const product = await Product.findById(id)
-      .populate('supplier', 'firstName lastName companyName email phone profileImage location tradeLicense verified')
+      .populate('supplier', 'firstName lastName companyName email phone profileImage location tradeLicense isVerified')
       .lean();
+
+    console.log('Product found:', product ? 'Yes' : 'No');
 
     if (!product) {
       return NextResponse.json({
@@ -21,8 +24,8 @@ export async function GET(request, { params }) {
       }, { status: 404 });
     }
 
-    // Increment view count
-    await Product.findByIdAndUpdate(id, { $inc: { viewCount: 1 } });
+    // Increment view count (non-blocking)
+    Product.findByIdAndUpdate(id, { $inc: { viewCount: 1 } }).exec().catch(err => console.error('View count update error:', err));
 
     return NextResponse.json({
       success: true,
@@ -33,7 +36,8 @@ export async function GET(request, { params }) {
     console.error('Get product error:', error);
     return NextResponse.json({
       success: false,
-      message: error.message || 'Server error'
+      message: error.message || 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 });
   }
 }
@@ -59,7 +63,7 @@ export async function PUT(request, { params }) {
       }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     // Verify product belongs to this supplier
@@ -147,7 +151,7 @@ export async function DELETE(request, { params }) {
       }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Verify product belongs to this supplier
     const product = await Product.findById(id);

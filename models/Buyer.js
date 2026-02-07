@@ -99,6 +99,27 @@ const buyerSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Comprehensive indexes for super-fast query performance
+buyerSchema.index({ email: 1 }, { unique: true });
+buyerSchema.index({ isActive: 1, isVerified: 1, createdAt: -1 });
+buyerSchema.index({ companyName: 1 });
+buyerSchema.index({ tradeLicense: 1 });
+
+// Text search index
+buyerSchema.index({ 
+  firstName: 'text', 
+  lastName: 'text', 
+  companyName: 'text',
+  email: 'text'
+}, {
+  weights: {
+    email: 10,
+    companyName: 8,
+    firstName: 5,
+    lastName: 5
+  }
+});
+
 // Encrypt password before saving
 buyerSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {

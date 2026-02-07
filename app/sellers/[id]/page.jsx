@@ -1,489 +1,390 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect, use } from "react"
+import { useParams } from "next/navigation"
 import Link from "next/link"
 import SellersHeader from "../../../components/SellersHeader"
 
-export default function SellerDetailPage({ params }) {
-  const [activeTab, setActiveTab] = useState("products")
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
-  const supplier = {
-    id: 1,
-    name: "MetalCorp Industries",
-    logo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=120&h=120&fit=crop",
-    banner: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=300&fit=crop",
-    country: "USA",
-    location: "Pittsburgh, Pennsylvania, USA",
-    established: "1995",
-    rating: 4.8,
-    reviews: 1250,
-    products: 245,
-    verified: true,
-    responseTime: "< 2 hours",
-    totalOrders: "10,000+",
-    employees: "500-1000",
-    annualRevenue: "$50M - $100M",
-    description:
-      "MetalCorp Industries is a leading manufacturer and supplier of high-quality steel and metal products for construction, automotive, and industrial applications. With over 25 years of experience, we have built a reputation for excellence in quality, reliability, and customer service. Our state-of-the-art manufacturing facilities and rigorous quality control processes ensure that every product meets the highest international standards.",
-    certifications: ["ISO 9001:2015", "ISO 14001:2015", "OHSAS 18001", "ASTM Certified"],
-    specializations: ["Steel Manufacturing", "Metal Processing", "Quality Control", "Industrial Supply"],
-    contact: {
-      email: "sales@metalcorp.com",
-      phone: "+1-412-555-0123",
-      website: "www.metalcorp.com",
-      address: "1234 Industrial Blvd, Pittsburgh, PA 15201",
-    },
+export default function SellerDetailPage({ params }) {
+  const unwrappedParams = use(params);
+  const routeParams = useParams();
+  const supplierId = unwrappedParams?.id || routeParams?.id;
+  
+  const [activeTab, setActiveTab] = useState("products")
+  const [supplier, setSupplier] = useState(null)
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (supplierId) {
+      fetchSupplier();
+    }
+  }, [supplierId]);
+
+  const fetchSupplier = async () => {
+    try {
+      setLoading(true);
+      console.log('Fetching supplier with ID:', supplierId);
+      console.log('API URL:', `${API_BASE_URL}/api/suppliers/${supplierId}`);
+      
+      const response = await fetch(`${API_BASE_URL}/api/suppliers/${supplierId}`);
+      console.log('Response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Supplier data:', data);
+        setSupplier(data.supplier);
+        setProducts(data.supplier.products || []);
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error('Failed to fetch supplier:', response.status, errorData);
+        setSupplier(null);
+      }
+    } catch (error) {
+      console.error('Error fetching supplier:', error);
+      setSupplier(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <>
+        <SellersHeader />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </>
+    );
   }
 
-  const products = [
-    {
-      id: 1,
-      name: "Premium Steel Rods",
-      price: 1250,
-      image: "https://images.unsplash.com/photo-1565728744382-61accd4aa148?w=200&h=200&fit=crop",
-      category: "Steel Products",
-      rating: 4.8,
-      minOrder: "5 tons",
-    },
-    {
-      id: 2,
-      name: "Stainless Steel Sheets",
-      price: 1850,
-      image: "https://images.unsplash.com/photo-1567271636807-51a10568e5ca?w=200&h=200&fit=crop",
-      category: "Steel Products",
-      rating: 4.7,
-      minOrder: "2 tons",
-    },
-    {
-      id: 3,
-      name: "Galvanized Steel Pipes",
-      price: 980,
-      image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=200&h=200&fit=crop",
-      category: "Steel Products",
-      rating: 4.6,
-      minOrder: "10 pieces",
-    },
-    {
-      id: 4,
-      name: "Carbon Steel Plates",
-      price: 1450,
-      image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200&h=200&fit=crop",
-      category: "Steel Products",
-      rating: 4.9,
-      minOrder: "3 tons",
-    },
-  ]
+  if (!supplier) {
+    return (
+      <>
+        <SellersHeader />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Supplier Not Found</h1>
+            <Link href="/sellers" className="text-blue-600 hover:underline">
+              Back to Sellers
+            </Link>
+          </div>
+        </div>
+      </>
+    );
+  }
 
-  const reviews = [
-    {
-      id: 1,
-      reviewer: "John Manufacturing Co.",
-      rating: 5,
-      date: "2 weeks ago",
-      comment:
-        "Excellent quality steel products and outstanding customer service. MetalCorp has been our trusted supplier for over 3 years.",
-      verified: true,
-    },
-    {
-      id: 2,
-      reviewer: "BuildTech Solutions",
-      rating: 4,
-      date: "1 month ago",
-      comment:
-        "Good quality materials and timely delivery. Pricing is competitive. Would recommend for large construction projects.",
-      verified: true,
-    },
-    {
-      id: 3,
-      reviewer: "Industrial Dynamics",
-      rating: 5,
-      date: "2 months ago",
-      comment:
-        "Professional team, high-quality products, and excellent technical support. Very satisfied with our partnership.",
-      verified: true,
-    },
-  ]
-
-  const companyStats = [
-    { label: "Years in Business", value: "29+" },
-    { label: "Products Sold", value: "1M+" },
-    { label: "Happy Customers", value: "5,000+" },
-    { label: "Countries Served", value: "25+" },
-  ]
+  const stats = supplier.stats || {};
+  const reviews = []; // Mock reviews for now
 
   return (
     <div className="min-h-screen bg-gray-50">
       <SellersHeader />
       
       <div className="pt-20">
-        {/* Breadcrumb */}
-        <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 py-2">
-            <nav className="text-xs text-gray-600">
-              <Link href="/" className="hover:text-blue-600">
-                Home
-              </Link>
-              <span className="mx-2">›</span>
-              <Link href="/sellers" className="hover:text-blue-600">
-                Suppliers
-              </Link>
-              <span className="mx-2">›</span>
-              <span className="text-gray-800">{supplier.name}</span>
-            </nav>
+        {/* Banner with Profile */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 h-48 relative">
+          <div className="container mx-auto px-4">
+            <div className="absolute -bottom-16 left-4 md:left-8">
+              <div className="flex items-end space-x-6">
+                <img
+                  src={supplier.profileImage?.url || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=120&h=120&fit=crop"}
+                  alt={supplier.companyName}
+                  className="w-32 h-32 rounded-lg border-4 border-white shadow-lg object-cover"
+                />
+                <div className="pb-4">
+                  <h1 className="text-white text-3xl font-bold">{supplier.companyName || `${supplier.firstName} ${supplier.lastName}`}</h1>
+                  <p className="text-blue-100 mt-1">{supplier.address || 'Location not specified'}</p>
+                  <div className="flex items-center mt-2 space-x-4">
+                    {stats.verified && (
+                      <span className="bg-green-500 text-white text-xs px-3 py-1 rounded-full flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        Verified
+                      </span>
+                    )}
+                    <div className="flex items-center text-white">
+                      <span className="text-yellow-400 mr-1">★</span>
+                      <span className="font-semibold">{stats.rating?.toFixed(1) || '4.5'}</span>
+                      <span className="ml-1 text-blue-100">({stats.reviews || 0} reviews)</span>
+                    </div>
+</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-      {/* Company Banner */}
-      <div className="relative">
-        <img src={supplier.banner || "/placeholder.svg"} alt={supplier.name} className="w-full h-48 object-cover" />
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-        <div className="absolute bottom-4 left-4 text-white">
-          <h1 className="text-2xl font-bold mb-1">{supplier.name}</h1>
-          <p className="text-sm">📍 {supplier.location}</p>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Company Overview */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <div className="flex items-start space-x-4 mb-4">
-                <img
-                  src={supplier.logo || "/placeholder.svg"}
-                  alt={supplier.name}
-                  className="w-16 h-16 rounded-full border-2 border-white shadow-sm"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h2 className="text-xl font-bold text-gray-800">{supplier.name}</h2>
-                    {supplier.verified && (
-                      <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">✓ Verified</span>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-3 text-xs text-gray-600 mb-3">
-                    <div className="flex items-center">
-                      <span className="text-yellow-500 mr-1">⭐</span>
-                      <span className="font-semibold">{supplier.rating}</span>
-                      <span className="ml-1">({supplier.reviews} reviews)</span>
-                    </div>
-                    <span>Est. {supplier.established}</span>
-                    <span>{supplier.employees} employees</span>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                    {companyStats.map((stat, index) => (
-                      <div key={index} className="text-center">
-                        <div className="text-lg font-bold text-blue-600">{stat.value}</div>
-                        <div className="text-gray-600">{stat.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+        {/* Company Stats */}
+        <div className="bg-white border-b mt-20">
+          <div className="container mx-auto px-4 py-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900">{stats.totalProducts || 0}</p>
+                <p className="text-sm text-gray-600 mt-1">Products Listed</p>
               </div>
-
-              <p className="text-gray-700 leading-relaxed text-sm">{supplier.description}</p>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900">{stats.totalOrders || '1000+'}</p>
+                <p className="text-sm text-gray-600 mt-1">Total Orders</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900">{stats.established || new Date().getFullYear()}</p>
+                <p className="text-sm text-gray-600 mt-1">Established</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900">{stats.responseTime || '< 2 hours'}</p>
+                <p className="text-sm text-gray-600 mt-1">Response Time</p>
+              </div>
             </div>
+          </div>
+        </div>
 
-            {/* Tabs */}
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="border-b">
-                <div className="flex space-x-6 px-4">
-                  {["products", "about", "reviews", "certifications"].map((tab) => (
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Content */}
+            <div className="lg:col-span-2">
+              {/* Tabs */}
+              <div className="bg-white rounded-lg shadow">
+                <div className="border-b border-gray-200">
+                  <div className="flex space-x-8 px-6">
                     <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`py-3 px-1 border-b-2 font-medium capitalize transition-colors text-sm ${
-                        activeTab === tab
-                          ? "border-blue-500 text-blue-600"
-                          : "border-transparent text-gray-600 hover:text-gray-800"
+                      onClick={() => setActiveTab("products")}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm transition ${
+                        activeTab === "products"
+                          ? "border-blue-600 text-blue-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700"
                       }`}
                     >
-                      {tab}
+                      Products ({products.length})
                     </button>
-                  ))}
+                    <button
+                      onClick={() => setActiveTab("about")}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm transition ${
+                        activeTab === "about"
+                          ? "border-blue-600 text-blue-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      About Company
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("reviews")}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm transition ${
+                        activeTab === "reviews"
+                          ? "border-blue-600 text-blue-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      Reviews ({stats.reviews || 0})
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <div className="p-4">
-                {activeTab === "products" && (
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-gray-800">Products ({products.length})</h3>
-                      <Link href="/products" className="text-blue-600 hover:text-blue-800 text-xs">
-                        View All Products →
-                      </Link>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {products.map((product) => (
-                        <Link
-                          key={product.id}
-                          href={`/products/${product.id}`}
-                          className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200 hover:border-gray-300"
-                        >
-                          <div className="aspect-square relative overflow-hidden">
-                            <img
-                              src={product.image || "/placeholder.svg"}
-                              alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                <div className="p-6">
+                  {/* Products Tab */}
+                  {activeTab === "products" && (
+                    <div>
+                      {products.length === 0 ? (
+                        <div className="text-center py-12">
+                          <svg
+                            className="mx-auto h-12 w-12 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                             />
-                          </div>
-                          <div className="p-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
-                                {product.category}
-                              </span>
-                              <div className="flex items-center space-x-1">
-                                <span className="text-yellow-500">⭐</span>
-                                <span className="text-xs text-gray-600">{product.rating}</span>
-                              </div>
-                            </div>
-                            <h4 className="font-semibold text-gray-800 mb-1 text-sm line-clamp-2 group-hover:text-blue-600 transition-colors">
-                              {product.name}
-                            </h4>
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-lg font-bold text-green-600">${product.price}/ton</span>
-                              <span className="text-xs text-gray-500">Min: {product.minOrder}</span>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "about" && (
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-3">About {supplier.name}</h3>
-                      <p className="text-gray-700 leading-relaxed mb-4 text-sm">{supplier.description}</p>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-2 text-sm">Specializations</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {supplier.specializations.map((spec, index) => (
-                          <span key={index} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                            {spec}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-2 text-sm">Company Details</h4>
-                        <div className="space-y-2 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Established:</span>
-                            <span className="font-medium">{supplier.established}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Employees:</span>
-                            <span className="font-medium">{supplier.employees}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Annual Revenue:</span>
-                            <span className="font-medium">{supplier.annualRevenue}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Response Time:</span>
-                            <span className="font-medium text-green-600">{supplier.responseTime}</span>
-                          </div>
+                          </svg>
+                          <h3 className="mt-2 text-sm font-medium text-gray-900">No products</h3>
+                          <p className="mt-1 text-sm text-gray-500">This supplier hasn't listed any products yet.</p>
                         </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {products.map((product) => (
+                            <Link key={product._id} href={`/products/${product._id}`}>
+                              <div className="border rounded-lg overflow-hidden hover:shadow-lg transition cursor-pointer">
+                                <img
+                                  src={product.primaryImage || product.images?.[0]?.url || "https://images.unsplash.com/photo-1565728744382-61accd4aa148?w=200&h=200&fit=crop"}
+                                  alt={product.name}
+                                  className="w-full h-48 object-cover"
+                                />
+                                <div className="p-4">
+                                  <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
+                                  <p className="text-sm text-gray-600 mb-2">{product.category}</p>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-blue-600 font-bold text-lg">৳{product.price?.toLocaleString() || 0}</span>
+                                    {product.rating && (
+                                      <span className="text-sm text-gray-600 flex items-center">
+                                        <span className="text-yellow-400 mr-1">★</span>
+                                        {product.rating.toFixed(1)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-2">MOQ: {product.minOrder} {product.unit}</p>
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* About Tab */}
+                  {activeTab === "about" && (
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Company Overview</h3>
+                        <p className="text-gray-600">
+                          {supplier.industry ? `Specializing in ${supplier.industry}.` : 'No description available.'}
+                        </p>
                       </div>
 
                       <div>
-                        <h4 className="font-semibold text-gray-800 mb-2 text-sm">Contact Information</h4>
-                        <div className="space-y-2 text-xs">
-                          <div className="flex items-center space-x-2">
-                            <span>📧</span>
-                            <span>{supplier.contact.email}</span>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Company Details</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-gray-600">Company Type</p>
+                            <p className="font-medium">{supplier.companyType || 'N/A'}</p>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <span>📞</span>
-                            <span>{supplier.contact.phone}</span>
+                          <div>
+                            <p className="text-sm text-gray-600">Employees</p>
+                            <p className="font-medium">{stats.employees || 'N/A'}</p>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <span>🌐</span>
-                            <span>{supplier.contact.website}</span>
+                          <div>
+                            <p className="text-sm text-gray-600">Trade License</p>
+                            <p className="font-medium">{supplier.tradeLicense || 'N/A'}</p>
                           </div>
-                          <div className="flex items-start space-x-2">
-                            <span>📍</span>
-                            <span>{supplier.contact.address}</span>
+                          <div>
+                            <p className="text-sm text-gray-600">Website</p>
+                            <p className="font-medium">
+                              {supplier.website ? (
+                                <a href={supplier.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                  Visit Website
+                                </a>
+                              ) : 'N/A'}
+                            </p>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {activeTab === "reviews" && (
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="text-center">
-                        <div className="text-3xl font-bold text-gray-800">{supplier.rating}</div>
-                        <div className="flex text-yellow-500 justify-center mb-1">
-                          {"⭐".repeat(Math.floor(supplier.rating))}
+                  {/* Reviews Tab */}
+                  {activeTab === "reviews" && (
+                    <div>
+                      {reviews.length === 0 ? (
+                        <div className="text-center py-12">
+                          <svg
+                            className="mx-auto h-12 w-12 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                            />
+                          </svg>
+                          <h3 className="mt-2 text-sm font-medium text-gray-900">No reviews yet</h3>
+                          <p className="mt-1 text-sm text-gray-500">Be the first to review this supplier</p>
                         </div>
-                        <div className="text-xs text-gray-600">{supplier.reviews} reviews</div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="space-y-1">
-                          {[5, 4, 3, 2, 1].map((stars) => (
-                            <div key={stars} className="flex items-center space-x-2">
-                              <span className="text-xs w-6">{stars}★</span>
-                              <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                                <div
-                                  className="bg-yellow-500 h-1.5 rounded-full"
-                                  style={{
-                                    width: `${stars === 5 ? 70 : stars === 4 ? 20 : stars === 3 ? 5 : stars === 2 ? 3 : 2}%`,
-                                  }}
-                                ></div>
+                      ) : (
+                        <div className="space-y-6">
+                          {reviews.map((review) => (
+                            <div key={review.id} className="border-b pb-6 last:border-b-0">
+                              <div className="flex items-start justify-between mb-2">
+                                <div>
+                                  <div className="flex items-center">
+                                    <span className="font-semibold text-gray-900">{review.reviewer}</span>
+                                    {review.verified && (
+                                      <span className="ml-2 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                                        ✓ Verified Purchase
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center mt-1">
+                                    {[...Array(5)].map((_, i) => (
+                                      <span
+                                        key={i}
+                                        className={i < review.rating ? "text-yellow-400" : "text-gray-300"}
+                                      >
+                                        ★
+                                      </span>
+                                    ))}
+                                    <span className="ml-2 text-sm text-gray-500">{review.date}</span>
+                                  </div>
+                                </div>
                               </div>
-                              <span className="text-xs text-gray-600 w-8">
-                                {stars === 5
-                                  ? "70%"
-                                  : stars === 4
-                                    ? "20%"
-                                    : stars === 3
-                                      ? "5%"
-                                      : stars === 2
-                                        ? "3%"
-                                        : "2%"}
-                              </span>
+                              <p className="text-gray-600 text-sm">{review.comment}</p>
                             </div>
                           ))}
                         </div>
-                      </div>
+                      )}
                     </div>
-
-                    <div className="space-y-4">
-                      {reviews.map((review) => (
-                        <div key={review.id} className="border-b border-gray-100 pb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                                <span className="text-gray-600 font-medium text-xs">{review.reviewer.charAt(0)}</span>
-                              </div>
-                              <div>
-                                <div className="font-medium text-gray-800 text-sm">{review.reviewer}</div>
-                                <div className="text-xs text-gray-600">{review.date}</div>
-                              </div>
-                              {review.verified && (
-                                <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">
-                                  Verified
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex text-yellow-500 text-xs">{"⭐".repeat(review.rating)}</div>
-                          </div>
-                          <p className="text-gray-700 text-sm">{review.comment}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "certifications" && (
-                  <div className="space-y-6">
-                    <h3 className="text-xl font-semibold text-gray-800">Certifications & Standards</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {supplier.certifications.map((cert, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-4 flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                            <span className="text-green-600 font-bold">✓</span>
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-800">{cert}</div>
-                            <div className="text-sm text-gray-600">Certified & Verified</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-
-          {/* Sidebar */}
-          <div className="space-y-4">
-            {/* Contact Card */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Contact Supplier</h3>
-              <div className="space-y-2">
-                <button className="w-full bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm">
-                  💬 Send Message
-                </button>
-                <button className="w-full border border-gray-300 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors text-sm">
-                  📞 Request Call
-                </button>
-                <button className="w-full border border-gray-300 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors text-sm">
-                  📄 Request Quote
-                </button>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="text-xs text-gray-600 space-y-2">
-                  <div className="flex justify-between">
-                    <span>Response Time:</span>
-                    <span className="font-medium text-green-600">{supplier.responseTime}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Total Orders:</span>
-                    <span className="font-medium">{supplier.totalOrders}</span>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Quick Stats</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 text-sm">Products Listed</span>
-                  <span className="font-semibold text-blue-600">{supplier.products}</span>
+            {/* Right Column - Contact Info */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow p-6 sticky top-24">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-gray-400 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm text-gray-600">Email</p>
+                      <p className="font-medium">{supplier.email || 'N/A'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-gray-400 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-medium">{supplier.phone || 'N/A'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-gray-400 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm text-gray-600">Address</p>
+                      <p className="font-medium">{supplier.address || 'N/A'}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 text-sm">Customer Rating</span>
-                  <span className="font-semibold text-yellow-600">⭐ {supplier.rating}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 text-sm">Years Active</span>
-                  <span className="font-semibold text-green-600">
-                    {new Date().getFullYear() - Number.parseInt(supplier.established)}+
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Trust & Safety</h3>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <span className="text-green-500">✓</span>
-                  <span className="text-sm text-gray-700">Identity Verified</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-green-500">✓</span>
-                  <span className="text-sm text-gray-700">Business License Verified</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-green-500">✓</span>
-                  <span className="text-sm text-gray-700">Quality Certified</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-green-500">✓</span>
-                  <span className="text-sm text-gray-700">Trade Assurance</span>
-                </div>
+                <button className="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                  Contact Supplier
+                </button>
+                <button className="w-full mt-2 border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition">
+                  Start Chat
+                </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   )

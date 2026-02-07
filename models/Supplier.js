@@ -125,6 +125,29 @@ supplierSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+// Comprehensive indexes for super-fast query performance
+supplierSchema.index({ email: 1 }, { unique: true });
+supplierSchema.index({ isApproved: 1, isActive: 1, createdAt: -1 }); // Active approved suppliers
+supplierSchema.index({ isApproved: 1, isVerified: 1, isActive: 1 }); // Verified suppliers
+supplierSchema.index({ interestedCategories: 1, isApproved: 1 }); // Category filter
+supplierSchema.index({ companyName: 1 });
+supplierSchema.index({ tradeLicense: 1 });
+
+// Text search index for searchable fields
+supplierSchema.index({ 
+  firstName: 'text', 
+  lastName: 'text', 
+  companyName: 'text',
+  industry: 'text'
+}, {
+  weights: {
+    companyName: 10,
+    firstName: 5,
+    lastName: 5,
+    industry: 2
+  }
+});
+
 // Get public profile
 supplierSchema.methods.getPublicProfile = function() {
   const supplier = this.toObject();

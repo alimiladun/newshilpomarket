@@ -176,13 +176,31 @@ const productSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Indexes for better query performance
-productSchema.index({ supplier: 1, isActive: 1 });
-productSchema.index({ category: 1, isActive: 1 });
-productSchema.index({ name: 'text', description: 'text' });
+// Comprehensive indexes for super-fast query performance
+// Compound indexes for common queries
+productSchema.index({ supplier: 1, isActive: 1, createdAt: -1 }); // Supplier products list
+productSchema.index({ category: 1, isActive: 1, price: 1 }); // Category with price filter
+productSchema.index({ category: 1, isActive: 1, rating: -1 }); // Category with rating sort
+productSchema.index({ isActive: 1, isFeatured: 1, createdAt: -1 }); // Featured products
+productSchema.index({ isActive: 1, inStock: 1, createdAt: -1 }); // Available products
+productSchema.index({ isActive: 1, price: 1 }); // Price range queries
+
+// Text search index for name and description
+productSchema.index({ name: 'text', description: 'text', tags: 'text' }, {
+  weights: {
+    name: 10,
+    tags: 5,
+    description: 1
+  }
+});
+
+// Single field indexes for sorting and filtering
 productSchema.index({ price: 1 });
 productSchema.index({ rating: -1 });
 productSchema.index({ createdAt: -1 });
+productSchema.index({ viewCount: -1 });
+productSchema.index({ orderCount: -1 });
+productSchema.index({ slug: 1 }, { unique: true, sparse: true });
 
 // Generate slug before saving
 productSchema.pre('save', function(next) {

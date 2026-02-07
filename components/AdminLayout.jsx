@@ -39,6 +39,12 @@ export default function AdminLayout({ children }) {
       current: pathname.startsWith("/admin/suppliers"),
     },
     {
+      name: "Buyers",
+      href: "/admin/buyers",
+      icon: "🛒",
+      current: pathname.startsWith("/admin/buyers"),
+    },
+    {
       name: "Transactions",
       href: "/admin/transactions",
       icon: "💳",

@@ -1,13 +1,24 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect, use } from "react"
+import { useParams, useRouter } from "next/navigation"
 import Header from "../../../components/Header"
 import Footer from "../../../components/Footer"
 import Link from "next/link"
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+
 export default function PurchasePage({ params, searchParams }) {
-  const [step, setStep] = useState(1)
+  const unwrappedParams = use(params);
+  const routeParams = useParams();
+  const productId = unwrappedParams?.id || routeParams?.id;
+  const router = useRouter();
+  
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    quantity: Number.parseInt(searchParams?.quantity) || 5,
+    quantity: parseInt(searchParams?.quantity) || 5,
     deliveryAddress: "",
     billingAddress: "",
     sameAsDelivery: true,
@@ -15,36 +26,121 @@ export default function PurchasePage({ params, searchParams }) {
     specialRequirements: "",
     urgentDelivery: false,
     insurance: false,
-  })
+  });
 
-  const product = {
-    id: 1,
-    name: "Premium Steel Rods",
-    supplier: "MetalCorp Industries",
-    price: 1250,
-    image: "/placeholder.svg?height=200&width=200",
-    category: "Metals & Alloys",
-    minOrder: 5,
-    unit: "tons",
-    specifications: {
-      "Material Grade": "ASTM A615 Grade 60",
-      "Diameter Range": "8mm - 32mm",
-      Length: "6m - 12m",
-    },
-  }
+  useEffect(() => {
+    if (productId) {
+      fetchProduct();
+    }
+  }, [productId]);
+
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/products/${productId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setProduct(data.product);
+        setFormData(prev => ({
+          ...prev,
+          quantity: Math.max(prev.quantity, data.product.minOrder || 1)
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
-    }))
+    }));
+  };
+
+  const handleSubmitOrder = async () => {
+    try {
+      setSubmitting(true);
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login to place an order');
+        router.push('/auth/login');
+        return;
+      }
+
+      const orderData = {
+        productId: product._id,
+        quantity: formData.quantity,
+        deliveryAddress: formData.deliveryAddress,
+        billingAddress: formData.sameAsDelivery ? formData.deliveryAddress : formData.billingAddress,
+        paymentMethod: formData.paymentMethod,
+        specialRequirements: formData.specialRequirements,
+        urgentDelivery: formData.urgentDelivery,
+        insurance: formData.insurance
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/buyers/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStep(4);
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to submit order');
+      }
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      alert('Failed to submit order. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
-  const subtotal = formData.quantity * product.price
-  const shippingCost = formData.urgentDelivery ? 500 : 200
-  const insuranceCost = formData.insurance ? subtotal * 0.02 : 0
-  const tax = subtotal * 0.08
-  const total = subtotal + shippingCost + insuranceCost + tax
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Not Found</h1>
+            <Link href="/products" className="text-blue-600 hover:underline">
+              Back to Products
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const subtotal = formData.quantity * product.price;
+  const shippingCost = formData.urgentDelivery ? 500 : 200;
+  const insuranceCost = formData.insurance ? subtotal * 0.02 : 0;
+  const tax = subtotal * 0.08;
+  const total = subtotal + shippingCost + insuranceCost + tax;
 
   const paymentMethods = [
     {
@@ -75,7 +171,7 @@ export default function PurchasePage({ params, searchParams }) {
       icon: "🔒",
       processingTime: "2-5 business days",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -123,13 +219,13 @@ export default function PurchasePage({ params, searchParams }) {
                   <div className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center space-x-4">
                       <img
-                        src={product.image || "/placeholder.svg"}
+                        src={product.images?.[0]?.url || product.primaryImage || "/placeholder.svg"}
                         alt={product.name}
                         className="w-20 h-20 rounded-lg object-cover"
                       />
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-800">{product.name}</h3>
-                        <p className="text-gray-600 text-sm">{product.supplier}</p>
+                        <p className="text-gray-600 text-sm">{product.supplierName}</p>
                         <p className="text-green-600 font-semibold">
                           ${product.price}/{product.unit}
                         </p>
@@ -153,7 +249,7 @@ export default function PurchasePage({ params, searchParams }) {
                         onChange={(e) =>
                           handleInputChange(
                             "quantity",
-                            Math.max(product.minOrder, Number.parseInt(e.target.value) || product.minOrder),
+                            Math.max(product.minOrder, parseInt(e.target.value) || product.minOrder),
                           )
                         }
                         min={product.minOrder}
@@ -332,7 +428,7 @@ export default function PurchasePage({ params, searchParams }) {
                   </div>
                   <h2 className="text-2xl font-bold text-gray-800">Order Submitted Successfully!</h2>
                   <p className="text-gray-600">
-                    Your quote request has been sent to {product.supplier}. You will receive a detailed quote within 24
+                    Your quote request has been sent to {product.supplierName}. You will receive a detailed quote within 24
                     hours.
                   </p>
 
@@ -355,7 +451,7 @@ export default function PurchasePage({ params, searchParams }) {
                       Continue Shopping
                     </Link>
                     <Link
-                      href="/orders"
+                      href="/buyer/dashboard/orders"
                       className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                       View Orders
@@ -379,10 +475,17 @@ export default function PurchasePage({ params, searchParams }) {
                     Previous
                   </button>
                   <button
-                    onClick={() => setStep(Math.min(4, step + 1))}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    onClick={() => {
+                      if (step === 3) {
+                        handleSubmitOrder();
+                      } else {
+                        setStep(Math.min(4, step + 1));
+                      }
+                    }}
+                    disabled={submitting}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
                   >
-                    {step === 3 ? "Submit Order" : "Continue"}
+                    {submitting ? 'Submitting...' : (step === 3 ? "Submit Order" : "Continue")}
                   </button>
                 </div>
               )}
@@ -440,8 +543,8 @@ export default function PurchasePage({ params, searchParams }) {
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <h4 className="font-semibold text-gray-800 mb-2">Supplier Information</h4>
                 <div className="text-sm text-gray-600 space-y-1">
-                  <p>{product.supplier}</p>
-                  <p>⭐ 4.8 rating</p>
+                  <p>{product.supplierName}</p>
+                  <p>⭐ {product.rating || 4.5} rating</p>
                   <p>Response time: {"< 2 hours"}</p>
                 </div>
               </div>
@@ -453,7 +556,7 @@ export default function PurchasePage({ params, searchParams }) {
                 <span className="text-green-600 mt-0.5">🔒</span>
                 <div className="text-sm">
                   <h4 className="font-semibold text-green-800 mb-1">Secure Transaction</h4>
-                  <p className="text-green-700">Your order is protected by RawMart&apos;s trade assurance program.</p>
+                  <p className="text-green-700">Your order is protected by ShilpoMarket&apos;s trade assurance program.</p>
                 </div>
               </div>
             </div>
