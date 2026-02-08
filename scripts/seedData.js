@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+require('dotenv').config();
 
-// MongoDB connection string
-const MONGODB_URI = 'mongodb+srv://abstalha192:abstalha192@cluster0.cjfdfme.mongodb.net/shilpomarket';
+// MongoDB connection string from environment variables
+const MONGODB_URI = process.env.MONGODB_URI;
 
 // Supplier Schema
 const supplierSchema = new mongoose.Schema({
