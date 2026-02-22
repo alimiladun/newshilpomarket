@@ -39,65 +39,6 @@ export default function Hero() {
 
   return (
     <>
-      <style jsx>{`
-        @keyframes fade-up {
-          from { opacity: 0; transform: translateY(24px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 0.7; transform: scale(1.05); }
-        }
-        @keyframes shimmer {
-          0% { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
-        @keyframes float-card {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
-        }
-        @keyframes slide-in-right {
-          from { opacity: 0; transform: translateX(32px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-
-        .anim-fade-up { animation: fade-up 0.8s ease-out forwards; }
-        .anim-slide-right { animation: slide-in-right 0.8s ease-out forwards; }
-        .anim-pulse-slow { animation: pulse-slow 6s ease-in-out infinite; }
-        .anim-float { animation: float-card 4s ease-in-out infinite; }
-        .anim-float-2 { animation: float-card 5s ease-in-out infinite; animation-delay: 1s; }
-        .anim-float-3 { animation: float-card 6s ease-in-out infinite; animation-delay: 2s; }
-
-        .glass {
-          background: rgba(255,255,255,0.08);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(255,255,255,0.15);
-        }
-        .glass-bright {
-          background: rgba(255,255,255,0.12);
-          backdrop-filter: blur(16px);
-          border: 1px solid rgba(255,255,255,0.2);
-        }
-        .shimmer-text {
-          background: linear-gradient(90deg, #fff 0%, #93c5fd 40%, #fff 60%, #fff 100%);
-          background-size: 200% auto;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          animation: shimmer 4s linear infinite;
-        }
-        .hero-bg-image {
-          background-image: url('https://media.istockphoto.com/id/990083620/photo/forklift-handling-sugar-bags-for-stuffing-into-container-for-export.jpg?s=612x612&w=0&k=20&c=GdV8ZLDCVGqbDSR2Vxr7oeaNpMnej47F0h_XsDZR6mA=');
-          background-size: cover;
-          background-position: center;
-        }
-        .stat-active {
-          background: rgba(255,255,255,0.16);
-          border-color: rgba(255,255,255,0.35);
-          transform: scale(1.04);
-        }
-      `}</style>
-
       <section className="relative overflow-hidden flex items-center justify-center py-16 lg:py-0 min-h-[92vh]">
 
         {/* ── Background ── */}
