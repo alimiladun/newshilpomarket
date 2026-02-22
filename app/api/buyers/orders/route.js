@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/database';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
+import Transaction from '@/models/Transaction';
 import { verifyToken } from '@/lib/tokenUtils';
 
 // GET - Fetch buyer's orders
@@ -172,6 +173,36 @@ export async function POST(request) {
 
     await order.save();
 
+    // Create transaction for this order
+    const platformCommission = totalAmount * 0.02; // 2% commission
+    const sellerNetAmount = totalAmount - platformCommission;
+
+    const transaction = new Transaction({
+      order: order._id,
+      buyer: decoded.id,
+      seller: product.supplier._id || product.supplier,
+      product: productId,
+      type: 'payment',
+      amount: totalAmount,
+      platformCommission,
+      netAmount: sellerNetAmount,
+      status: 'pending',
+      paymentMethod,
+      description: `Payment for Order ${orderNumber} - ${product.name}`,
+      metadata: {
+        orderNumber,
+        productName: product.name,
+        quantity,
+        unitPrice,
+        subtotal,
+        shippingCost,
+        insuranceCost,
+        tax
+      }
+    });
+
+    await transaction.save();
+
     // Populate order for response
     await order.populate([
       { path: 'product', select: 'name images primaryImage category' },
@@ -181,7 +212,12 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       message: 'Order created successfully',
-      order
+      order,
+      transaction: {
+        id: transaction._id,
+        transactionId: transaction.transactionId,
+        amount: totalAmount
+      }
     }, { status: 201 });
 
   } catch (error) {

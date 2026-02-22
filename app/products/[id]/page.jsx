@@ -196,7 +196,7 @@ export default function ProductDetailPage({ params }) {
 
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="text-2xl font-bold text-green-600 mb-1">
-                ${product.price.toLocaleString()}/{product.unit}
+                <span className="text-3xl font-extrabold">৳</span>{product.price.toLocaleString()}/{product.unit}
               </div>
               <div className="text-xs text-gray-600">
                 Minimum order: {product.minOrder} {product.unit} • Maximum: {product.maxOrder} {product.unit}
@@ -236,7 +236,7 @@ export default function ProductDetailPage({ params }) {
               <div className="bg-blue-50 rounded-lg p-2">
                 <div className="flex justify-between items-center text-xs font-semibold">
                   <span>Total Price:</span>
-                  <span className="text-blue-600">${totalPrice.toLocaleString()}</span>
+                  <span className="text-blue-600"><span className="text-base font-extrabold">৳</span>{totalPrice.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -341,7 +341,7 @@ export default function ProductDetailPage({ params }) {
                 {product.shipping?.freeShippingThreshold > 0 && (
                   <div className="flex justify-between py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-700 text-xs">Free Shipping Above:</span>
-                    <span className="text-gray-600 text-xs">${product.shipping.freeShippingThreshold}</span>
+                    <span className="text-gray-600 text-xs"><span className="text-sm font-extrabold">৳</span>{product.shipping.freeShippingThreshold}</span>
                   </div>
                 )}
                 <div className="flex justify-between py-1 border-b border-gray-100">
@@ -408,7 +408,7 @@ export default function ProductDetailPage({ params }) {
                 <div className="p-3">
                   <h3 className="font-semibold text-gray-800 text-sm mb-1 line-clamp-2">{relatedProduct.name}</h3>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-lg font-bold text-green-600">${relatedProduct.price}/{relatedProduct.unit}</span>
+                    <span className="text-lg font-bold text-green-600"><span className="text-xl font-extrabold">৳</span>{relatedProduct.price}/{relatedProduct.unit}</span>
                     <div className="flex items-center text-xs text-gray-600">
                       <span className="text-yellow-500 mr-1">⭐</span>
                       <span>{relatedProduct.rating || 'New'}</span>

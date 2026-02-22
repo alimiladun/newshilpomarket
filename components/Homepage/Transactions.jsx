@@ -29,7 +29,7 @@ export default function Transactions({ recentTransactions }) {
         id: baseId + i + 1,
         product: products[productIndex],
         buyer: buyers[buyerIndex],
-        amount: `$${amount.toLocaleString()}`,
+        amount: `৳${amount.toLocaleString()}`,
         quantity: `${quantity} tons`,
         date: `${hoursAgo} hours ago`,
         status: statuses[statusIndex],
@@ -94,7 +94,9 @@ export default function Transactions({ recentTransactions }) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-gray-900 text-sm">{transaction.amount}</div>
+                    <div className="font-bold text-gray-900 text-sm">
+                      <span className="text-base font-extrabold">৳</span>{transaction.amount.slice(1)}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -130,7 +132,9 @@ export default function Transactions({ recentTransactions }) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-gray-900 text-sm">{transaction.amount}</div>
+                    <div className="font-bold text-gray-900 text-sm">
+                      <span className="text-base font-extrabold">৳</span>{transaction.amount.slice(1)}
+                    </div>
                   </div>
                 </div>
               ))}

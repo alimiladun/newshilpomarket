@@ -70,6 +70,56 @@ const productSchema = new mongoose.Schema({
 
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 
+// Buyer Schema
+const buyerSchema = new mongoose.Schema({
+  email: String,
+  password: String,
+  firstName: String,
+  lastName: String,
+  phone: String,
+  companyName: String,
+  companyType: String,
+  address: String,
+  city: String,
+  country: String,
+  zipCode: String,
+  industry: String,
+  createdAt: Date
+});
+
+const Buyer = mongoose.models.Buyer || mongoose.model('Buyer', buyerSchema);
+
+// Transaction Schema
+const transactionSchema = new mongoose.Schema({
+  transactionId: String,
+  buyer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Buyer'
+  },
+  seller: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Supplier'
+  },
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product'
+  },
+  type: String,
+  amount: Number,
+  platformCommission: Number,
+  netAmount: Number,
+  status: String,
+  paymentMethod: String,
+  description: String,
+  metadata: {
+    productName: String,
+    quantity: Number
+  },
+  createdAt: Date
+});
+
+const Transaction = mongoose.models.Transaction || mongoose.model('Transaction', transactionSchema);
+
 // Sample data
 const sampleSuppliers = [
   {
@@ -179,6 +229,54 @@ const sampleSuppliers = [
     isActive: true,
     isVerified: true,
     createdAt: new Date('2023-08-22')
+  }
+];
+
+const sampleBuyers = [
+  {
+    email: 'buyer1@example.com',
+    password: 'password123',
+    firstName: 'Ahmed',
+    lastName: 'Hassan',
+    phone: '+880 1500-111222',
+    companyName: 'Construction Solutions Ltd',
+    companyType: 'Buyer',
+    address: '12 Tejgaon Industrial Area',
+    city: 'Dhaka',
+    country: 'Bangladesh',
+    zipCode: '1215',
+    industry: 'Construction',
+    createdAt: new Date('2023-05-10')
+  },
+  {
+    email: 'buyer2@example.com',
+    password: 'password123',
+    firstName: 'Rashida',
+    lastName: 'Khatun',
+    phone: '+880 1600-333444',
+    companyName: 'Fashion Retail Group',
+    companyType: 'Buyer',
+    address: '45 Banani Commercial Area',
+    city: 'Dhaka',
+    country: 'Bangladesh',
+    zipCode: '1213',
+    industry: 'Retail',
+    createdAt: new Date('2023-07-15')
+  },
+  {
+    email: 'buyer3@example.com',
+    password: 'password123',
+    firstName: 'Karim',
+    lastName: 'Uddin',
+    phone: '+880 1700-555666',
+    companyName: 'Home Decor Enterprises',
+    companyType: 'Buyer',
+    address: '78 Gulshan Avenue',
+    city: 'Dhaka',
+    country: 'Bangladesh',
+    zipCode: '1212',
+    industry: 'Home & Living',
+    createdAt: new Date('2023-09-20')
   }
 ];
 
@@ -353,6 +451,254 @@ const getSampleProducts = (supplierIds) => [
     categoryName: 'Handicrafts',
     description: 'Elegant ceramic dinner set with beautiful patterns. Includes plates, bowls, and cups for 6 people.',
     price: 4500,
+const getSampleTransactions = (buyerIds, supplierIds, productIds) => {
+  const transactions = [];
+  const statuses = ['completed', 'pending', 'processing'];
+  const paymentMethods = ['bank_transfer', 'mobile_banking', 'cash_on_delivery', 'letter_of_credit'];
+  
+  let txnCounter = 1;
+
+  // Create transactions for each buyer-seller-product combination
+  // Buyer 1 transactions
+  transactions.push({
+    transactionId: `TXN${String(txnCounter++).padStart(6, '0')}`,
+    buyer: buyerIds[0],
+    seller: supplierIds[0],
+    product: productIds[0],
+    type: 'payment',
+    amount: 25000,
+    platformCommission: 500,
+    netAmount: 24500,
+    status: 'completed',
+    paymentMethod: 'bank_transfer',
+    description: 'Payment for 100 pieces of Organic Jute Shopping Bags',
+    metadata: {
+      productName: 'Organic Jute Shopping Bags',
+      quantity: 100
+    },
+    createdAt: new Date('2024-01-20')
+  });
+
+  transactions.push({
+    transactionId: `TXN${String(txnCounter++).padStart(6, '0')}`,
+    buyer: buyerIds[0],
+    seller: supplierIds[1],
+    product: productIds[2],
+    type: 'payment',
+    amount: 175000,
+    platformCommission: 3500,
+    netAmount: 171500,
+    status: 'completed',
+    paymentMethod: 'letter_of_credit',
+    description: 'Payment for 500 pieces of Premium Cotton T-Shirts',
+    metadata: {
+      productName: 'Premium Cotton T-Shirts',
+      quantity: 500
+    },
+    createdAt: new Date('2024-01-22')
+  });
+
+  transactions.push({
+    transactionId: `TXN${String(txnCounter++).padStart(6, '0')}`,
+    buyer: buyerIds[0],
+    seller: supplierIds[0],
+    product: productIds[1],
+    type: 'payment',
+    amount: 22500,
+    platformCommission: 450,
+    netAmount: 22050,
+    status: 'pending',
+    paymentMethod: 'bank_transfer',
+    await Buyer.deleteMany({});
+    await Transaction.deleteMany({});
+    description: 'Payment for 50 rolls of Natural Jute Rope',
+    metadata: {
+      productName: 'Natural Jute Rope (50m Roll)',
+      quantity: 50
+    },
+    createdAt: new Date('2024-01-28')
+  });
+
+  // Buyer 2 transactions
+  transactions.push({
+    transactionId: `TXN${String(txnCounter++).padStart(6, '0')}`,
+    buyer: buyerIds[1],
+    seller: supplierIds[1],
+    product: productIds[3],
+    type: 'payment',
+    amount: 13buyers with hashed passwords
+    console.log('Inserting buyers...');
+    const buyersWithHashedPasswords = sampleBuyers.map(buyer => ({
+      ...buyer,
+      password: hashedPassword
+    }));
+    const insertedBuyers = await Buyer.insertMany(buyersWithHashedPasswords);
+    console.log(`Inserted ${insertedBuyers.length} buyers!`);
+
+    // Get buyer IDs
+    const buyerIds = insertedBuyers.map(b => b._id);
+
+    // Insert products
+    console.log('Inserting products...');
+    const products = getSampleProducts(supplierIds);
+    const insertedProducts = await Product.insertMany(products);
+    console.log(`Inserted ${insertedProducts.length} products!`);
+
+    // Get product IDs
+    const productIds = insertedProducts.map(p => p._id);
+
+    // Insert transactions
+    console.log('Inserting transactions...');
+    const transactions = getSampleTransactions(buyerIds, supplierIds, productIds);
+    const insertedTransactions = await Transaction.insertMany(transactions);
+    console.log(`Inserted ${insertedTransactions.length} transaction
+    description: 'Payment for 200 pieces of Formal Shirts',
+    metadata: {
+      productName: 'Formal Shirts - Export Quality',
+      quantity: 200
+    },
+    createdAt: new Date('2024-01-18')
+  });
+
+  transactions.push({
+    transactionId: `TXN${String(txnCounter++).padStart(6, '0')}`,
+    buyer: buyerIds[1],
+    seller: supplierIds[2],
+    product: productIds[4],
+    type: 'payment',
+    amount: 42500,
+    platformCommission: 850,
+    netAmount: 41650,
+    status: 'completed',
+    paymentMethod: 'bank_transfer',
+    description: 'Payment for 50 pieces of Genuine Leather Wallets',
+    metadata: {
+      productName: 'Genuine Leather Wallets',
+      quantity: 50
+    },
+    createdAt: new Date('2024-01-25')
+  });
+
+  transactions.push({
+    transactionId: `TXN${String(txnCounter++).padStart(6, '0')}`,
+    buyer: buyerIds[1],
+    seller: supplierIds[1],
+    product: productIds[2],
+    type: 'payment',
+    amount: 87500,
+    platformCommission: 1750,
+    netAmount: 85750,
+    status: 'processing',
+    paymentMethod: 'letter_of_credit',
+    description: 'Payment for 250 pieces of Premium Cotton T-Shirts',
+    metadata: {
+      productName: 'Premium Cotton T-Shirts',
+      quantity: 250
+    },
+    createdAt: new Date('2024-01-27')
+  });
+
+  // Buyer 3 transactions
+  transactions.push({
+    transactionId: `TXN${String(txnCounter++).padStart(6, '0')}`,
+    buyer: buyerIds[2],
+    seller: supplierIds[3],
+    product: productIds[6],
+    type: 'payment',
+    amount: 45000,
+    platformCommission: 900,
+    netAmount: 44100,
+    status: 'completed',
+    paymentMethod: 'bank_transfer',
+    description: 'Payment for 10 sets of Ceramic Dinner Set',
+    metadata: {
+      productName: 'Ceramic Dinner Set (24 pieces)',
+      quantity: 10
+    },
+    createdAt: new Date('2024-01-15')
+  });
+
+  transactions.push({
+    transactionId: `TXN${String(txnCounter++).padStart(6, '0')}`,
+    buyer: buyerIds[2],
+    seller: supplierIds[3],
+    product: productIds[7],
+    type: 'payment',
+    amount: 24000,
+    platformCommission: 480,
+    netAmount: 23520,
+    status: 'completed',
+    paymentMethod: 'mobile_banking',
+    description: 'Payment for 20 pieces of Decorative Ceramic Vases',
+    metadata: {
+      productName: 'Decorative Ceramic Vases',
+      quantity: 20
+    },
+    createdAt: new Date('2024-01-23')
+  });
+
+  transactions.push({
+    transactionId: `TXN${String(txnCounter++).padStart(6, '0')}`,
+    buyer: buyerIds[2],
+    seller: supplierIds[2],
+    product: productIds[5],
+    type: 'payment',
+    amount: 70000,
+    platformCommission: 1400,
+    netAmount: 68600,
+    status: 'pending',
+    paymentMethod: 'bank_transfer',
+    description: 'Payment for 20 pieces of Leather Office Bags',
+    metadata: {
+      productName: 'Leather Office Bags',
+      quantity: 20
+    },
+    createdAt: new Date('2024-01-29')
+  });
+
+  // Add commission transactions for platform
+  transactions.push({
+    transactionId: `TXN${String(txnCounter++).padStart(6, '0')}`,
+    buyer: buyerIds[0],
+    seller: supplierIds[0],
+    product: productIds[0],
+    type: 'commission',
+    amount: 500,
+    platformCommission: 500,
+    netAmount: 0,
+    status: 'completed',
+    paymentMethod: 'bank_transfer',
+    description: 'Platform commission for transaction TXN000001',
+    metadata: {
+      productName: 'Organic Jute Shopping Bags',
+      quantity: 100
+    },
+    createdAt: new Date('2024-01-20')
+  });
+
+  // Add a refund transaction
+  transactions.push({
+    transactionId: `TXN${String(txnCounter++).padStart(6, '0')}`,
+    buyer: buyerIds[1],
+    seller: supplierIds[2],
+    product: productIds[4],
+    type: 'refund',
+    amount: 8500,
+    platformCommission: 0,
+    netAmount: 8500,
+    status: 'completed',
+    paymentMethod: 'bank_transfer',
+    description: 'Refund for 10 defective Genuine Leather Wallets',
+    metadata: {
+      productName: 'Genuine Leather Wallets',
+      quantity: 10
+    },
+    createdAt: new Date('2024-01-26')
+  });
+
+  return transactions;
+};
+
     unit: 'set',
     minOrder: 10,
     maxOrder: 500,
@@ -416,16 +762,26 @@ async function seedDatabase() {
     // Hash passwords
     const hashedPassword = await bcrypt.hash('password123', 10);
 
-    // Insert suppliers with hashed passwords
-    console.log('Inserting suppliers...');
-    const suppliersWithHashedPasswords = sampleSuppliers.map(supplier => ({
-      ...supplier,
-      password: hashedPassword
-    }));
-    const insertedSuppliers = await Supplier.insertMany(suppliersWithHashedPasswords);
-    console.log(`Inserted ${insertedSuppliers.length} suppliers!`);
+    // Insert suppliers wiBuyers:');
+    insertedBuyers.forEach(b => {
+      console.log(`- ${b.companyName} (${b.email}) - ID: ${b._id}`);
+    });
+    console.log('\nSample Products:');
+    insertedProducts.forEach(p => {
+      console.log(`- ${p.name} - ID: ${p._id}`);
+    });
+    console.log('\nSample Transactions:');
+    insertedTransactions.forEach(t => {
+      console.log(`- ${t.transactionId}: ${t.description} - ৳${t.amount}`);
+    });
 
-    // Get supplier IDs
+    console.log('\nYou can now test:');
+    console.log('- Products page: http://localhost:3000/products');
+    console.log('- Product details: http://localhost:3000/products/' + insertedProducts[0]._id);
+    console.log('- Sellers page: http://localhost:3000/sellers');
+    console.log('- Seller details: http://localhost:3000/sellers/' + insertedSuppliers[0]._id);
+    console.log('- Buyer transactions: Use buyer ID: ' + buyerIds[0]);
+    console.log('- Seller transactions: Use seller ID: ' + supplierIds[0]
     const supplierIds = insertedSuppliers.map(s => s._id);
 
     // Insert products

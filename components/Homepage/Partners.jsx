@@ -40,7 +40,9 @@ const Partners = ({ partners }) => {
                     </div>
                     <div className="flex items-center justify-between text-xs sm:text-sm mt-2">
                       <span className="text-gray-500">Volume</span>
-                      <span className="font-semibold text-green-600">{partner.volume}</span>
+                      <span className="font-semibold text-green-600">
+                        <span className="text-sm font-extrabold">৳</span>{partner.volume.slice(1)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -70,7 +72,9 @@ const Partners = ({ partners }) => {
                     </div>
                     <div className="flex items-center justify-between text-xs sm:text-sm mt-2">
                       <span className="text-gray-500">Volume</span>
-                      <span className="font-semibold text-green-600">{partner.volume}</span>
+                      <span className="font-semibold text-green-600">
+                        <span className="text-sm font-extrabold">৳</span>{partner.volume.slice(1)}
+                      </span>
                     </div>
                   </div>
                 </div>

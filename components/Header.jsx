@@ -139,7 +139,7 @@ export default function Header() {
                 <img
                   src="/logo.png"
                   alt="ShilpoMarket Logo"
-                  className={`w-auto h-16 group-hover:scale-110 transition-all duration-300 ease-in-out`} // Fixed size
+                  className={`w-auto h-11 group-hover:scale-110 transition-all duration-300 ease-in-out`} // Fixed size
                 />
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-cyan-400 to-blue-500 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
               </div>

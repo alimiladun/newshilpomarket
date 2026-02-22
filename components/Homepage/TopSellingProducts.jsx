@@ -98,9 +98,13 @@ export default function TopSellingProducts({ topSellingProducts }) {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-sm font-bold text-gray-900">{product.price}</span>
+                    <span className="text-sm font-bold text-gray-900">
+                      <span className="text-base font-extrabold">৳</span>{product.price.slice(1)}
+                    </span>
                     {product.originalPrice && (
-                      <span className="text-xs text-gray-500 line-through ml-2">{product.originalPrice}</span>
+                      <span className="text-xs text-gray-500 line-through ml-2">
+                        <span className="text-sm font-bold">৳</span>{product.originalPrice.slice(1)}
+                      </span>
                     )}
                   </div>
                   <div className="text-right">

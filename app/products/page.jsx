@@ -115,7 +115,7 @@ export default function ProductsPage() {
 
                 {/* Price Range */}
                 <div className="mb-4">
-                  <h4 className="text-xs font-medium text-gray-700 mb-2">Price Range ($/unit)</h4>
+                  <h4 className="text-xs font-medium text-gray-700 mb-2">Price Range (৳/unit)</h4>
                   <div className="space-y-2">
                     <input
                       type="range"
@@ -128,8 +128,8 @@ export default function ProductsPage() {
                       className="w-full"
                     />
                     <div className="flex justify-between text-xs text-gray-600">
-                      <span>${priceRange[0]}</span>
-                      <span>${priceRange[1]}</span>
+                      <span>৳{priceRange[0]}</span>
+                      <span>৳{priceRange[1]}</span>
                     </div>
                   </div>
                 </div>
@@ -253,7 +253,7 @@ export default function ProductsPage() {
                             <div className="flex items-center justify-between">
                               <div>
                                 <span className="text-sm font-bold text-gray-900">
-                                  ${product.price}/{product.unit}
+                                  <span className="text-base font-extrabold">৳</span>{product.price}/{product.unit}
                                 </span>
                               </div>
                               <div className="text-right">

@@ -43,55 +43,6 @@ const SellerTransactionsPage = () => {
     { name: 'Settings', href: '/seller/dashboard/settings', icon: Settings }
   ];
 
-  // Mock transaction data (replace with actual API call)
-  const mockTransactions = [
-    {
-      id: 'TXN-001',
-      date: '2024-01-28',
-      type: 'credit',
-      amount: 45000,
-      description: 'Payment received for Order #12345',
-      status: 'completed',
-      orderId: 'ORD-12345'
-    },
-    {
-      id: 'TXN-002',
-      date: '2024-01-27',
-      type: 'credit',
-      amount: 32000,
-      description: 'Payment received for Order #12344',
-      status: 'completed',
-      orderId: 'ORD-12344'
-    },
-    {
-      id: 'TXN-003',
-      date: '2024-01-26',
-      type: 'debit',
-      amount: 2500,
-      description: 'Platform commission fee',
-      status: 'completed',
-      orderId: null
-    },
-    {
-      id: 'TXN-004',
-      date: '2024-01-25',
-      type: 'credit',
-      amount: 78000,
-      description: 'Payment received for Order #12343',
-      status: 'completed',
-      orderId: 'ORD-12343'
-    },
-    {
-      id: 'TXN-005',
-      date: '2024-01-24',
-      type: 'pending',
-      amount: 56000,
-      description: 'Pending payment for Order #12342',
-      status: 'pending',
-      orderId: 'ORD-12342'
-    }
-  ];
-
   useEffect(() => {
     if (authLoading) return;
 
@@ -114,20 +65,30 @@ const SellerTransactionsPage = () => {
   }, [searchQuery, filterType, transactions]);
 
   const fetchTransactions = async () => {
+    if (!user || !user._id) {
+      console.log('User not ready yet');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // TODO: Replace with actual API call
-      // const response = await apiCall(`/api/transactions/seller/${user._id}`);
-      // const data = await response.json();
-      // setTransactions(data.transactions || []);
-      
-      // For now, use mock data
-      setTimeout(() => {
-        setTransactions(mockTransactions);
-        setLoading(false);
-      }, 500);
+      setLoading(true);
+      console.log('Fetching transactions for seller:', user._id);
+      const response = await fetch(`/api/transactions?userId=${user._id}&userType=seller`);
+      const data = await response.json();
+
+      console.log('Transactions response:', data);
+
+      if (data.success) {
+        setTransactions(data.transactions || []);
+      } else {
+        console.error('Failed to fetch transactions:', data.message);
+        setTransactions([]);
+      }
     } catch (error) {
       console.error('Error fetching transactions:', error);
       setTransactions([]);
+    } finally {
       setLoading(false);
     }
   };
@@ -163,14 +124,20 @@ const SellerTransactionsPage = () => {
 
     if (searchQuery) {
       filtered = filtered.filter(txn =>
-        txn.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        txn.transactionId.toLowerCase().includes(searchQuery.toLowerCase()) ||
         txn.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        txn.orderId?.toLowerCase().includes(searchQuery.toLowerCase())
+        txn.order?.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     if (filterType !== 'all') {
-      filtered = filtered.filter(txn => txn.type === filterType || txn.status === filterType);
+      if (filterType === 'income') {
+        filtered = filtered.filter(txn => txn.type === 'payment' || txn.type === 'payout');
+      } else if (filterType === 'expenses') {
+        filtered = filtered.filter(txn => txn.type === 'commission' || txn.type === 'refund');
+      } else {
+        filtered = filtered.filter(txn => txn.status === filterType);
+      }
     }
 
     setFilteredTransactions(filtered);
@@ -178,11 +145,11 @@ const SellerTransactionsPage = () => {
 
   const calculateStats = () => {
     const totalIncome = transactions
-      .filter(t => t.type === 'credit' && t.status === 'completed')
-      .reduce((sum, t) => sum + t.amount, 0);
+      .filter(t => (t.type === 'payment' || t.type === 'payout') && t.status === 'completed')
+      .reduce((sum, t) => sum + t.netAmount, 0);
     
     const totalExpenses = transactions
-      .filter(t => t.type === 'debit' && t.status === 'completed')
+      .filter(t => (t.type === 'commission' || t.type === 'refund') && t.status === 'completed')
       .reduce((sum, t) => sum + t.amount, 0);
     
     const pendingAmount = transactions
@@ -374,8 +341,8 @@ const SellerTransactionsPage = () => {
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Transactions</option>
-                <option value="credit">Income Only</option>
-                <option value="debit">Expenses Only</option>
+                <option value="income">Income Only</option>
+                <option value="expenses">Expenses Only</option>
                 <option value="pending">Pending Only</option>
                 <option value="completed">Completed Only</option>
               </select>
@@ -408,13 +375,13 @@ const SellerTransactionsPage = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredTransactions.map((txn) => (
-                      <tr key={txn.id} className="hover:bg-gray-50">
+                      <tr key={txn._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{txn.id}</div>
-                          {txn.orderId && (
+                          <div className="text-sm font-medium text-gray-900">{txn.transactionId}</div>
+                          {txn.order && (
                             <Link href={`/seller/dashboard/orders`}>
                               <span className="text-xs text-blue-600 hover:text-blue-700">
-                                {txn.orderId}
+                                Order: {txn.order.orderNumber || txn.metadata?.orderNumber}
                               </span>
                             </Link>
                           )}
@@ -422,25 +389,57 @@ const SellerTransactionsPage = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center text-sm text-gray-900">
                             <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                            {new Date(txn.date).toLocaleDateString()}
+                            {new Date(txn.createdAt).toLocaleDateString('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-900">{txn.description}</div>
+                          {txn.buyer && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Buyer: {txn.buyer.companyName || txn.buyer.firstName}
+                            </div>
+                          )}
+                          {txn.metadata?.productName && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Product: {txn.metadata.productName}
+                            </div>
+                          )}
+                          {txn.metadata?.quantity && (
+                            <div className="text-xs text-gray-500">
+                              Quantity: {txn.metadata.quantity} units
+                            </div>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className={`text-sm font-semibold ${
-                            txn.type === 'credit' ? 'text-green-600' : 
-                            txn.type === 'debit' ? 'text-red-600' : 'text-yellow-600'
+                            txn.type === 'payment' || txn.type === 'payout' ? 'text-green-600' : 
+                            txn.type === 'refund' || txn.type === 'commission' ? 'text-red-600' : 'text-yellow-600'
                           }`}>
-                            {txn.type === 'credit' ? '+' : txn.type === 'debit' ? '-' : ''}
-                            ৳{txn.amount.toLocaleString()}
+                            {txn.type === 'payment' || txn.type === 'payout' ? '+' : '-'}
+                            ৳{(txn.type === 'payment' || txn.type === 'payout' ? txn.netAmount : txn.amount).toLocaleString()}
                           </div>
+                          {txn.type === 'payment' && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              <p>Total: ৳{txn.amount.toLocaleString()}</p>
+                              <p>Commission: -৳{txn.platformCommission.toLocaleString()}</p>
+                              <p className="font-semibold">Net: ৳{txn.netAmount.toLocaleString()}</p>
+                            </div>
+                          )}
+                          {txn.platformCommission > 0 && txn.type !== 'payment' && (
+                            <div className="text-xs text-gray-500">
+                              Commission: ৳{txn.platformCommission.toLocaleString()}
+                            </div>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                             txn.status === 'completed' ? 'bg-green-100 text-green-800' :
                             txn.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            txn.status === 'processing' ? 'bg-blue-100 text-blue-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
                             {txn.status}

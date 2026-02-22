@@ -112,7 +112,11 @@ export default function TopCategories({ topCategories = [] }) {
                       </div>
                       <div className="text-right">
                         <span className="text-xs text-gray-500 block">Starting from</span>
-                        <span className="text-xs font-medium text-gray-700">{category.priceRange}</span>
+                        <span className="text-xs font-medium text-gray-700">
+                          {category.priceRange.split('৳').map((part, i) =>
+                            i === 0 ? part : <span key={i}><span className="text-sm font-extrabold">৳</span>{part}</span>
+                          )}
+                        </span>
                       </div>
                     </div>
                   </div>

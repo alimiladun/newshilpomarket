@@ -1,188 +1,274 @@
 'use client';
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import HeroSearchbar from "./HeroSearchbar";
 
+const stats = [
+  { value: "50,000+", label: "Products Listed", icon: "📦" },
+  { value: "8,500+", label: "Verified Suppliers", icon: "✅" },
+  { value: "৳2B+", label: "Transactions Done", icon: "💰" },
+  { value: "120+", label: "Countries Reached", icon: "🌐" },
+];
+
+const quickCategories = [
+  { label: "Steel & Metals", icon: "🔩", slug: "metals-alloys" },
+  { label: "Chemicals", icon: "⚗️", slug: "chemicals-materials" },
+  { label: "Textiles", icon: "🧵", slug: "textiles-fabrics" },
+  { label: "Electronics", icon: "⚡", slug: "electronics-components" },
+  { label: "Agriculture", icon: "🌾", slug: "agriculture-food" },
+  { label: "Construction", icon: "🏗️", slug: "construction-building" },
+];
+
+const trendingSearches = ["Steel Rods", "Cotton Fiber", "Copper Wire", "Plastic Pellets", "Aluminum Sheets"];
+
+const featuredItems = [
+  { name: "Premium Steel Rods", supplier: "MetalCorp BD", price: "৳1,250/ton", tag: "🔥 Trending", img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=80&h=80&fit=crop" },
+  { name: "Organic Cotton Fiber", supplier: "EcoTextile Co.", price: "৳2,100/ton", tag: "⭐ Top Rated", img: "https://images.unsplash.com/photo-1516110833967-0b5ee0d1c86c?w=80&h=80&fit=crop" },
+  { name: "Industrial Chemicals", supplier: "ChemCore Ltd.", price: "৳850/ton", tag: "✅ Verified", img: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=80&h=80&fit=crop" },
+];
+
 export default function Hero() {
+  const [activeStatIndex, setActiveStatIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveStatIndex((prev) => (prev + 1) % stats.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <>
       <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         @keyframes pulse-slow {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 1; }
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.05); }
         }
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
         }
-        @keyframes slide-down {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes float-card {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
         }
-        @keyframes scale-in {
-          from { opacity: 0; transform: scale(0.9); }
-          to { opacity: 1; transform: scale(1); }
+        @keyframes slide-in-right {
+          from { opacity: 0; transform: translateX(32px); }
+          to { opacity: 1; transform: translateX(0); }
         }
-        @keyframes gradient-shift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
+
+        .anim-fade-up { animation: fade-up 0.8s ease-out forwards; }
+        .anim-slide-right { animation: slide-in-right 0.8s ease-out forwards; }
+        .anim-pulse-slow { animation: pulse-slow 6s ease-in-out infinite; }
+        .anim-float { animation: float-card 4s ease-in-out infinite; }
+        .anim-float-2 { animation: float-card 5s ease-in-out infinite; animation-delay: 1s; }
+        .anim-float-3 { animation: float-card 6s ease-in-out infinite; animation-delay: 2s; }
+
+        .glass {
+          background: rgba(255,255,255,0.08);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(255,255,255,0.15);
         }
-        @keyframes orbit {
-          0% { transform: rotate(0deg) translateX(100px) rotate(0deg); }
-          100% { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
+        .glass-bright {
+          background: rgba(255,255,255,0.12);
+          backdrop-filter: blur(16px);
+          border: 1px solid rgba(255,255,255,0.2);
         }
-        
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
-        .animate-fade-in { animation: fade-in 1s ease-out forwards; }
-        .animate-slide-down { animation: slide-down 0.8s ease-out forwards; }
-        .animate-scale-in { animation: scale-in 0.6s ease-out forwards; opacity: 0; }
-        .animate-gradient { 
-          animation: gradient-shift 8s ease infinite;
-          background-size: 200% 200%;
+        .shimmer-text {
+          background: linear-gradient(90deg, #fff 0%, #93c5fd 40%, #fff 60%, #fff 100%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: shimmer 4s linear infinite;
         }
-        .animate-orbit { animation: orbit 20s linear infinite; }
-        
-        .glass-effect {
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+        .hero-bg-image {
+          background-image: url('https://media.istockphoto.com/id/990083620/photo/forklift-handling-sugar-bags-for-stuffing-into-container-for-export.jpg?s=612x612&w=0&k=20&c=GdV8ZLDCVGqbDSR2Vxr7oeaNpMnej47F0h_XsDZR6mA=');
+          background-size: cover;
+          background-position: center;
         }
-        
-        .text-shadow {
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        .hero-grid {
-          background-image: 
-            linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
-          background-size: 60px 60px;
+        .stat-active {
+          background: rgba(255,255,255,0.16);
+          border-color: rgba(255,255,255,0.35);
+          transform: scale(1.04);
         }
       `}</style>
 
-      <section className="relative overflow-hidden min-h-screen flex items-center justify-center">
-        {/* Enhanced Background with Modern Design */}
+      <section className="relative overflow-hidden flex items-center justify-center py-16 lg:py-0 min-h-[92vh]">
+
+        {/* ── Background ── */}
         <div className="absolute inset-0">
-          {/* Base Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"></div>
-          
-          {/* Dynamic Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-black/50 via-transparent to-purple-900/20"></div>
-          
-          {/* Animated Grid */}
-          <div className="absolute inset-0 hero-grid opacity-30"></div>
-          
-          {/* Modern Geometric Shapes */}
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: "2s"}}></div>
-          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-500/5 rounded-full blur-2xl animate-pulse-slow" style={{animationDelay: "4s"}}></div>
-          
-          {/* Floating Elements */}
-          <div className="absolute top-20 left-20">
-            <div className="w-4 h-4 bg-blue-400/40 rounded-full animate-float"></div>
-          </div>
-          <div className="absolute top-40 right-32">
-            <div className="w-3 h-3 bg-purple-400/40 rounded-full animate-float" style={{animationDelay: "1s"}}></div>
-          </div>
-          <div className="absolute bottom-32 left-40">
-            <div className="w-5 h-5 bg-cyan-400/40 rounded-full animate-float" style={{animationDelay: "2s"}}></div>
-          </div>
-          
-          {/* Modern Lines */}
-          <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-blue-500/20 to-transparent"></div>
-          <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-purple-500/20 to-transparent"></div>
-          <div className="absolute left-0 top-1/3 w-full h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
-          
-          {/* Orbiting Elements */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="relative">
-              <div className="absolute animate-orbit">
-                <div className="w-2 h-2 bg-blue-400/60 rounded-full"></div>
-              </div>
-              <div className="absolute animate-orbit" style={{animationDelay: "10s", animationDirection: "reverse"}}>
-                <div className="w-1 h-1 bg-purple-400/60 rounded-full"></div>
-              </div>
-            </div>
-          </div>
+          <div className="absolute inset-0 hero-bg-image"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-blue-950/85 to-indigo-950/90"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
+          <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-3xl anim-pulse-slow"></div>
+          <div className="absolute bottom-1/4 -right-20 w-[400px] h-[400px] bg-indigo-600/10 rounded-full blur-3xl anim-pulse-slow" style={{animationDelay:"3s"}}></div>
+          <div className="absolute inset-0 opacity-10"
+            style={{backgroundImage:"linear-gradient(rgba(99,102,241,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.3) 1px,transparent 1px)", backgroundSize:"72px 72px"}}
+          ></div>
         </div>
 
-        <div className="relative container mx-auto px-4 py-20 z-10">
-          <div className="max-w-6xl mx-auto text-center text-white">
-            <div className="animate-fade-in">
-              {/* Modern Badge */}
-              <div className="mb-4 mt-8">
-                <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs md:text-sm font-medium animate-slide-down border border-white/20 hover:bg-white/15 transition-all duration-300">
-                  <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                  Powering Global Industry Since 2020
+        {/* ── Two-column layout ── */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex flex-col lg:flex-row items-center gap-10 lg:gap-16 lg:min-h-[92vh] py-16 lg:py-0">
+
+          {/* ════════════ LEFT COLUMN ════════════ */}
+          <div className="flex-1 w-full text-center lg:text-left">
+
+            {/* Badge */}
+            <div className="flex justify-center lg:justify-start mb-5 anim-fade-up" style={{animationDelay:"0s"}}>
+              <span className="inline-flex items-center gap-2 glass text-white px-4 py-2 rounded-full text-xs sm:text-sm font-medium">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                 </span>
-              </div>
+                Bangladesh's #1 Raw Material B2B Marketplace
+              </span>
+            </div>
 
-              {/* Hero Title */}
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight text-shadow">
-                Industrial Raw Materials.{" "}
-              </h1>
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold leading-[1.1] tracking-tight mb-4 anim-fade-up" style={{animationDelay:"0.1s"}}>
+              <span className="text-white">Source Industrial</span>
+              <br />
+              <span className="shimmer-text">Raw Materials.</span>
+              <br />
+              <span className="text-white text-2xl sm:text-3xl xl:text-4xl font-bold opacity-85">Smarter. Faster. Verified.</span>
+            </h1>
 
-              {/* Subtitle */}
-              <p className="text-base md:text-xl mb-8 md:mb-12 text-slate-200 leading-relaxed max-w-4xl mx-auto font-light">
-                Connect with verified suppliers of steel, chemicals, textiles, and advanced materials. 
-                <span className="block mt-1 md:mt-2 text-blue-200">
-                  Streamline your procurement process with our secure platform.
-                </span>
-              </p>
+            {/* Subtitle */}
+            <p className="text-slate-300 text-sm sm:text-base lg:text-lg max-w-xl mx-auto lg:mx-0 leading-relaxed font-light mb-6 anim-fade-up" style={{animationDelay:"0.15s"}}>
+              Connect directly with thousands of verified suppliers across steel, chemicals, textiles, and more — all in one secure platform.
+            </p>
 
+            {/* Searchbar */}
+            <div className="anim-fade-up" style={{animationDelay:"0.2s"}}>
               <HeroSearchbar />
+            </div>
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10 md:mb-16">
+            {/* Trending */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 mb-6 anim-fade-up" style={{animationDelay:"0.25s"}}>
+              <span className="text-slate-400 text-xs">Trending:</span>
+              {trendingSearches.map((term) => (
                 <Link
-                  href="/products"
-                  className="group relative bg-white text-slate-900 px-6 py-3 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-semibold text-sm md:text-lg hover:bg-slate-50 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl border border-white/20 overflow-hidden"
+                  key={term}
+                  href={`/products?search=${encodeURIComponent(term)}`}
+                  className="text-xs text-slate-300 hover:text-white border border-white/10 hover:border-white/30 hover:bg-white/10 px-3 py-1 rounded-full transition-all duration-200"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <span className="relative flex items-center justify-center">
-                    🔍 Explore Materials
-                    <span className="ml-2 md:ml-3 group-hover:translate-x-2 transition-transform duration-300">→</span>
-                  </span>
+                  {term}
                 </Link>
-                <Link
-                  href="/sellers"
-                  className="group relative glass-effect text-white px-6 py-3 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-semibold text-sm md:text-lg hover:bg-white/15 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl border-2 border-white/30 hover:border-white/50 overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <span className="relative flex items-center justify-center">
-                    🏪 Find Suppliers
-                    <span className="ml-2 md:ml-3 group-hover:translate-x-2 transition-transform duration-300">→</span>
-                  </span>
-                </Link>
-              </div>
-              
-              {/* Trust Indicators - Enhanced */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                {[
-                  { icon: "🔒", text: "Secure", desc: "256-bit Enc." },
-                  { icon: "✅", text: "Verified", desc: "Suppliers" },
-                  { icon: "📈", text: "Analytics", desc: "Real-time" },
-                  { icon: "🌐", text: "Global", desc: "150+ Countries" },
-                ].map((item, index) => (
-                  <div key={index} className="animate-scale-in group hover:scale-105 transition-all duration-300" style={{ animationDelay: `${index * 0.2}s` }}>
-                    <div className="glass-effect p-3 md:p-6 rounded-xl md:rounded-2xl hover:bg-white/15 transition-all duration-300">
-                      <div className="text-xl md:text-3xl mb-1 md:mb-3 group-hover:scale-110 transition-transform duration-300">{item.icon}</div>
-                      <div className="text-xs md:text-sm font-semibold text-white mb-0.5">{item.text}</div>
-                      <div className="text-xs text-slate-400">{item.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              ))}
+            </div>
 
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-8 anim-fade-up" style={{animationDelay:"0.3s"}}>
+              <Link
+                href="/products"
+                className="group bg-blue-600 hover:bg-blue-500 text-white px-7 py-3.5 rounded-2xl font-semibold text-sm transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30 flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                Browse 50,000+ Products
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
+              <Link
+                href="/sellers"
+                className="group glass hover:bg-white/15 text-white px-7 py-3.5 rounded-2xl font-semibold text-sm transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                Find Suppliers
+              </Link>
+              <Link
+                href="/auth/signup"
+                className="group border border-white/20 hover:border-white/45 text-white hover:bg-white/10 px-7 py-3.5 rounded-2xl font-semibold text-sm transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+              >
+                Start Selling
+                <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full">Free</span>
+              </Link>
+            </div>
 
+            {/* Trust strip */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-5 border-t border-white/10 anim-fade-up" style={{animationDelay:"0.35s"}}>
+              {[
+                { icon: "🔒", text: "256-bit SSL" },
+                { icon: "✅", text: "Verified Suppliers" },
+                { icon: "🚚", text: "Fast Delivery" },
+                { icon: "💬", text: "24/7 Support" },
+              ].map((item) => (
+                <div key={item.text} className="flex items-center gap-1.5 text-slate-400 text-xs">
+                  <span>{item.icon}</span>
+                  <span>{item.text}</span>
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* ════════════ RIGHT COLUMN ════════════ */}
+          <div className="w-full lg:w-[420px] xl:w-[460px] flex-shrink-0 flex flex-col gap-4">
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-2 gap-3 anim-slide-right" style={{animationDelay:"0.2s"}}>
+              {stats.map((stat, i) => (
+                <div
+                  key={i}
+                  className={`glass rounded-2xl p-4 text-center transition-all duration-500 ${
+                    activeStatIndex === i ? "stat-active" : "hover:bg-white/12"
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{stat.icon}</div>
+                  <div className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{stat.value}</div>
+                  <div className="text-slate-400 text-xs mt-0.5">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Featured product cards */}
+            <div className="hidden lg:flex flex-col gap-3 anim-slide-right" style={{animationDelay:"0.3s"}}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-white text-sm font-semibold">Live Products</span>
+                <Link href="/products" className="text-blue-400 hover:text-blue-300 text-xs transition-colors">View all →</Link>
+              </div>
+              {featuredItems.map((item, i) => (
+                <div
+                  key={i}
+                  className={`glass-bright rounded-xl p-3 flex items-center gap-3 hover:bg-white/18 transition-all duration-300 cursor-pointer ${
+                    i === 0 ? "anim-float" : i === 1 ? "anim-float-2" : "anim-float-3"
+                  }`}
+                >
+                  <img src={item.img} alt={item.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0 border border-white/10" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white text-xs font-semibold truncate">{item.name}</div>
+                    <div className="text-slate-400 text-xs truncate">{item.supplier}</div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-emerald-400 text-sm font-bold">{item.price}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{item.tag}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick categories */}
+            {/* <div className="anim-slide-right" style={{animationDelay:"0.4s"}}>
+              <div className="text-white text-sm font-semibold mb-2">Browse Categories</div>
+              <div className="grid grid-cols-3 gap-2">
+                {quickCategories.map((cat) => (
+                  <Link
+                    key={cat.slug}
+                    href={`/categories/${cat.slug}`}
+                    className="glass hover:bg-white/15 text-white text-xs font-medium px-2 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 flex flex-col items-center gap-1 text-center"
+                  >
+                    <span className="text-lg">{cat.icon}</span>
+                    <span className="leading-tight">{cat.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </div> */}
+
+          </div>
+          {/* ═══════════════════════════════════ */}
+
         </div>
       </section>
     </>
