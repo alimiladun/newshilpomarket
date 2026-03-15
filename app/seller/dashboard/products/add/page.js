@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { useToast } from '../../../../../hooks/use-toast';
 import { API_ENDPOINTS } from '../../../../../lib/api';
 import {
   ArrowLeft,
@@ -23,6 +24,7 @@ import {
 
 const AddProductPage = () => {
   const { user, loading: authLoading, apiCall, uploadProfileImage, getProfileImage, logout } = useAuth();
+  const { toast } = useToast();
   const router = useRouter();
   const [profileImage, setProfileImage] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -162,7 +164,11 @@ const AddProductPage = () => {
           });
         } else {
           const error = await response.json();
-          alert(`Failed to upload ${file.name}: ${error.message}`);
+          toast({
+            title: 'Upload Failed',
+            description: `Failed to upload ${file.name}: ${error.message}`,
+            variant: 'destructive'
+          });
         }
       }
 
@@ -171,12 +177,20 @@ const AddProductPage = () => {
           ...prev,
           images: [...prev.images, ...uploadedImages]
         }));
-        alert(`Successfully uploaded ${uploadedImages.length} file(s)`);
+        toast({
+          title: 'Success',
+          description: `Successfully uploaded ${uploadedImages.length} file(s)`,
+          variant: 'default'
+        });
       }
 
     } catch (error) {
       console.error('Error uploading images:', error);
-      alert('Error uploading images');
+      toast({
+        title: 'Error',
+        description: 'Error uploading images',
+        variant: 'destructive'
+      });
     } finally {
       setUploadingImage(false);
       if (imageInputRef.current) {
@@ -190,7 +204,11 @@ const AddProductPage = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Display image must be an image file');
+      toast({
+        title: 'Invalid File',
+        description: 'Display image must be an image file',
+        variant: 'destructive'
+      });
       return;
     }
 
@@ -217,14 +235,26 @@ const AddProductPage = () => {
             resourceType: 'image'
           }
         }));
-        alert('Display image uploaded successfully');
+        toast({
+          title: 'Success',
+          description: 'Display image uploaded successfully',
+          variant: 'default'
+        });
       } else {
         const error = await response.json();
-        alert(`Failed to upload display image: ${error.message}`);
+        toast({
+          title: 'Upload Failed',
+          description: `Failed to upload display image: ${error.message}`,
+          variant: 'destructive'
+        });
       }
     } catch (error) {
       console.error('Error uploading display image:', error);
-      alert('Error uploading display image');
+      toast({
+        title: 'Error',
+        description: 'Error uploading display image',
+        variant: 'destructive'
+      });
     } finally {
       setUploadingDisplayImage(false);
       if (displayImageInputRef.current) {
@@ -347,15 +377,27 @@ const AddProductPage = () => {
       });
 
       if (response.ok) {
-        alert('Product created successfully!');
+        toast({
+          title: 'Success',
+          description: 'Product created successfully!',
+          variant: 'default'
+        });
         router.push('/seller/dashboard/products');
       } else {
         const error = await response.json();
-        alert(error.message || 'Failed to create product');
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to create product',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
       console.error('Error creating product:', error);
-      alert('Error creating product');
+      toast({
+        title: 'Error',
+        description: 'Error creating product',
+        variant: 'destructive'
+      });
     } finally {
       setIsSubmitting(false);
     }

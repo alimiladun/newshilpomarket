@@ -9,13 +9,15 @@ export async function GET(request, { params }) {
     await connectDB();
 
     const { id } = await params;
-    console.log('Fetching product with ID:', id);
     
-    const product = await Product.findById(id)
-      .populate('supplier', 'firstName lastName companyName email phone profileImage location tradeLicense isVerified')
-      .lean();
+    // Select only the fields the detail page actually renders
+    const DETAIL_FIELDS =
+      'name description category price unit minOrder maxOrder inStock stockQuantity images primaryImage supplierName supplier location specifications shipping rating reviewCount isFeatured tags slug createdAt';
 
-    console.log('Product found:', product ? 'Yes' : 'No');
+    const product = await Product.findById(id)
+      .select(DETAIL_FIELDS)
+      .populate('supplier', 'companyName email phone profileImage address isVerified isApproved rating')
+      .lean();
 
     if (!product) {
       return NextResponse.json({
@@ -24,13 +26,17 @@ export async function GET(request, { params }) {
       }, { status: 404 });
     }
 
-    // Increment view count (non-blocking)
+    // Increment view count fire-and-forget (non-blocking)
     Product.findByIdAndUpdate(id, { $inc: { viewCount: 1 } }).exec().catch(err => console.error('View count update error:', err));
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       product
     }, { status: 200 });
+
+    // Cache product detail for 2 min; stale-while-revalidate for 5 min
+    response.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
+    return response;
 
   } catch (error) {
     console.error('Get product error:', error);

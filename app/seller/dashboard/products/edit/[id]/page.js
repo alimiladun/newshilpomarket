@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, use } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../../../../contexts/AuthContext';
+import { useToast } from '../../../../../../hooks/use-toast';
 import { API_ENDPOINTS } from '../../../../../../lib/api';
 import {
   ArrowLeft,
@@ -24,6 +25,7 @@ import {
 const EditProductPage = ({ params }) => {
   const unwrappedParams = use(params);
   const { user, loading: authLoading, apiCall, uploadProfileImage, getProfileImage, logout } = useAuth();
+  const { toast } = useToast();
   const router = useRouter();
   const productId = unwrappedParams.id;
   const [profileImage, setProfileImage] = useState(null);
@@ -110,7 +112,11 @@ const EditProductPage = ({ params }) => {
         // Check if this product belongs to the current user
         const productSupplierId = product.supplier?._id || product.supplier || product.supplierId || product.supplier_id;
         if (productSupplierId !== user._id) {
-          alert('You do not have permission to edit this product');
+          toast({
+            title: 'Permission Denied',
+            description: 'You do not have permission to edit this product',
+            variant: 'destructive'
+          });
           router.push('/seller/dashboard/products');
           return;
         }
@@ -138,12 +144,20 @@ const EditProductPage = ({ params }) => {
           internationalShipping: product.shipping?.international || false
         });
       } else {
-        alert('Failed to load product');
+        toast({
+          title: 'Error',
+          description: 'Failed to load product',
+          variant: 'destructive'
+        });
         router.push('/seller/dashboard/products');
       }
     } catch (error) {
       console.error('Error fetching product:', error);
-      alert('Error loading product');
+      toast({
+        title: 'Error',
+        description: 'Error loading product',
+        variant: 'destructive'
+      });
       router.push('/seller/dashboard/products');
     } finally {
       setLoading(false);
@@ -215,7 +229,11 @@ const EditProductPage = ({ params }) => {
           });
         } else {
           const error = await response.json();
-          alert(`Failed to upload ${file.name}: ${error.message}`);
+          toast({
+            title: 'Upload Failed',
+            description: `Failed to upload ${file.name}: ${error.message}`,
+            variant: 'destructive'
+          });
         }
       }
 
@@ -224,12 +242,20 @@ const EditProductPage = ({ params }) => {
           ...prev,
           images: [...prev.images, ...uploadedImages]
         }));
-        alert(`Successfully uploaded ${uploadedImages.length} file(s)`);
+        toast({
+          title: 'Success',
+          description: `Successfully uploaded ${uploadedImages.length} file(s)`,
+          variant: 'default'
+        });
       }
 
     } catch (error) {
       console.error('Error uploading images:', error);
-      alert('Error uploading images');
+      toast({
+        title: 'Error',
+        description: 'Error uploading images',
+        variant: 'destructive'
+      });
     } finally {
       setUploadingImage(false);
       if (imageInputRef.current) {
@@ -243,7 +269,11 @@ const EditProductPage = ({ params }) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Display image must be an image file');
+      toast({
+        title: 'Invalid File',
+        description: 'Display image must be an image file',
+        variant: 'destructive'
+      });
       return;
     }
 
@@ -270,14 +300,26 @@ const EditProductPage = ({ params }) => {
             resourceType: 'image'
           }
         }));
-        alert('Display image uploaded successfully');
+        toast({
+          title: 'Success',
+          description: 'Display image uploaded successfully',
+          variant: 'default'
+        });
       } else {
         const error = await response.json();
-        alert(`Failed to upload display image: ${error.message}`);
+        toast({
+          title: 'Upload Failed',
+          description: `Failed to upload display image: ${error.message}`,
+          variant: 'destructive'
+        });
       }
     } catch (error) {
       console.error('Error uploading display image:', error);
-      alert('Error uploading display image');
+      toast({
+        title: 'Error',
+        description: 'Error uploading display image',
+        variant: 'destructive'
+      });
     } finally {
       setUploadingDisplayImage(false);
       if (displayImageInputRef.current) {
@@ -398,15 +440,27 @@ const EditProductPage = ({ params }) => {
       });
 
       if (response.ok) {
-        alert('Product updated successfully!');
+        toast({
+          title: 'Success',
+          description: 'Product updated successfully!',
+          variant: 'default'
+        });
         router.push('/seller/dashboard/products');
       } else {
         const error = await response.json();
-        alert(error.message || 'Failed to update product');
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to update product',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
       console.error('Error updating product:', error);
-      alert('Error updating product');
+      toast({
+        title: 'Error',
+        description: 'Error updating product',
+        variant: 'destructive'
+      });
     } finally {
       setIsSubmitting(false);
     }

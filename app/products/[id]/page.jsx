@@ -2,6 +2,7 @@
 import { useState, useEffect, use } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import ProductHeader from "../../../components/ProductHeader"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
@@ -145,11 +146,13 @@ export default function ProductDetailPage({ params }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Product Images */}
           <div className="space-y-2">
-            <div className="aspect-square bg-white rounded-lg shadow-sm overflow-hidden max-w-md">
-              <img
+            <div className="aspect-square bg-white rounded-lg shadow-sm overflow-hidden max-w-md relative">
+              <Image
                 src={images[selectedImage] || "/placeholder.svg"}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                unoptimized
               />
             </div>
             <div className="grid grid-cols-4 gap-1 max-w-md">
@@ -161,10 +164,13 @@ export default function ProductDetailPage({ params }) {
                     selectedImage === index ? "border-blue-500" : "border-gray-200"
                   }`}
                 >
-                  <img
+                  <Image
                     src={image || "/placeholder.svg"}
                     alt={`${product.name} ${index + 1}`}
+                    width={100}
+                    height={100}
                     className="w-full h-full object-cover"
+                    unoptimized
                   />
                 </button>
               ))}
@@ -263,7 +269,7 @@ export default function ProductDetailPage({ params }) {
             <div className="bg-white rounded-lg border p-3">
               <h3 className="font-semibold text-gray-800 mb-2 text-xs">Supplier Information</h3>
               <div className="flex items-center space-x-2">
-                <img src={supplier.logo || "/placeholder.svg"} alt={supplier.name} className="w-10 h-10 rounded-full" />
+                <Image src={supplier.logo || "/placeholder.svg"} alt={supplier.name} width={40} height={40} className="w-10 h-10 rounded-full" unoptimized />
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-800 text-xs">{supplier.name}</h4>
                   <div className="flex items-center space-x-2 text-xs text-gray-600">
@@ -396,10 +402,13 @@ export default function ProductDetailPage({ params }) {
                   className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                 >
                   <div className="relative">
-                    <img
+                    <Image
                       src={relatedProduct.images?.[0]?.url || "/placeholder.svg"}
                       alt={relatedProduct.name}
+                      width={200}
+                      height={128}
                     className="w-full h-32 object-cover"
+                    unoptimized
                   />
                   <div className="absolute top-2 right-2 bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">
                     In Stock

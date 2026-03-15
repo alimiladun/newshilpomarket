@@ -176,31 +176,25 @@ const productSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Comprehensive indexes for super-fast query performance
-// Compound indexes for common queries
-productSchema.index({ supplier: 1, isActive: 1, createdAt: -1 }); // Supplier products list
-productSchema.index({ category: 1, isActive: 1, price: 1 }); // Category with price filter
-productSchema.index({ category: 1, isActive: 1, rating: -1 }); // Category with rating sort
-productSchema.index({ isActive: 1, isFeatured: 1, createdAt: -1 }); // Featured products
-productSchema.index({ isActive: 1, inStock: 1, createdAt: -1 }); // Available products
-productSchema.index({ isActive: 1, price: 1 }); // Price range queries
+// Compound indexes for the most common query patterns
+productSchema.index({ isActive: 1, createdAt: -1 });                          // Default "all active" list
+productSchema.index({ isActive: 1, isFeatured: 1, createdAt: -1 });           // Featured products
+productSchema.index({ isActive: 1, inStock: 1, createdAt: -1 });              // In-stock filter
+productSchema.index({ isActive: 1, category: 1, createdAt: -1 });             // Category list (default sort)
+productSchema.index({ isActive: 1, category: 1, price: 1 });                  // Category + price filter/sort
+productSchema.index({ isActive: 1, category: 1, rating: -1 });                // Category + rating sort
+productSchema.index({ isActive: 1, category: 1, inStock: 1, price: 1 });      // Category + inStock + price (most common filtered query)
+productSchema.index({ supplier: 1, isActive: 1, createdAt: -1 });             // Supplier's product list
 
-// Text search index for name and description
+// Text search index — name weighted 10x, tags 5x, description 1x
 productSchema.index({ name: 'text', description: 'text', tags: 'text' }, {
-  weights: {
-    name: 10,
-    tags: 5,
-    description: 1
-  }
+  weights: { name: 10, tags: 5, description: 1 }
 });
 
-// Single field indexes for sorting and filtering
-productSchema.index({ price: 1 });
-productSchema.index({ rating: -1 });
-productSchema.index({ createdAt: -1 });
-productSchema.index({ viewCount: -1 });
-productSchema.index({ orderCount: -1 });
-productSchema.index({ slug: 1 }, { unique: true, sparse: true });
+// Supporting indexes
+productSchema.index({ isActive: 1, price: 1 });       // Price sort without category filter
+productSchema.index({ isActive: 1, rating: -1 });      // Rating sort without category filter
+productSchema.index({ slug: 1 }, { unique: true, sparse: true }); // Slug uniqueness
 
 // Generate slug before saving
 productSchema.pre('save', function(next) {

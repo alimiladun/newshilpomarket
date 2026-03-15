@@ -57,9 +57,14 @@ export async function GET(request) {
 
     const skip = (page - 1) * limit;
 
+    // Only select the fields needed for the product card — no populate needed
+    // because supplierName is already denormalized on the product document.
+    const LIST_FIELDS =
+      '_id name price unit minOrder inStock images primaryImage category rating reviewCount supplierName supplier location';
+
     const [products, total] = await Promise.all([
       Product.find(query)
-        .populate('supplier', 'firstName lastName companyName email phone profileImage')
+        .select(LIST_FIELDS)
         .sort(sort)
         .skip(skip)
         .limit(limit)
@@ -67,7 +72,7 @@ export async function GET(request) {
       Product.countDocuments(query)
     ]);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       products,
       pagination: {
@@ -77,6 +82,10 @@ export async function GET(request) {
         pages: Math.ceil(total / limit)
       }
     }, { status: 200 });
+
+    // Cache for 60 s in the browser, allow stale for 120 s while revalidating
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    return response;
 
   } catch (error) {
     console.error('Get products error:', error);

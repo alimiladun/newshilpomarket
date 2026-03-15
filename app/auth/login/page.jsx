@@ -166,11 +166,11 @@ export default function LoginPage() {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
-                <div className="relative flex justify-center text-sm">
+                {/* <div className="relative flex justify-center text-sm">
                   <span className="px-2 bg-white text-gray-500">Or continue with</span>
-                </div>
+                </div> */}
               </div>
-
+{/* 
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <button className="w-full border border-gray-300 rounded-lg py-2 px-4 flex items-center justify-center space-x-2 hover:bg-gray-50 transition-colors">
                   <span>🔍</span>
@@ -180,7 +180,7 @@ export default function LoginPage() {
                   <span>💼</span>
                   <span className="text-sm font-medium text-gray-700">LinkedIn</span>
                 </button>
-              </div>
+              </div> */}
             </div>
 
             <div className="mt-8 text-center">

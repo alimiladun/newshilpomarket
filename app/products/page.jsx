@@ -1,6 +1,7 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import ProductHeader from "../../components/ProductHeader"
 import { getRootCategories } from "@/lib/categoriesData"
 
@@ -13,13 +14,24 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [sortBy, setSortBy] = useState("featured")
   const [priceRange, setPriceRange] = useState([0, 10000])
+  const [debouncedPriceRange, setDebouncedPriceRange] = useState([0, 10000])
   const [showFilters, setShowFilters] = useState(false)
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [inStockOnly, setInStockOnly] = useState(false);
+  const priceDebounceRef = useRef(null);
+
+  // Debounce price range — only fire fetch 400 ms after user stops sliding
+  useEffect(() => {
+    if (priceDebounceRef.current) clearTimeout(priceDebounceRef.current);
+    priceDebounceRef.current = setTimeout(() => {
+      setDebouncedPriceRange(priceRange);
+    }, 400);
+    return () => clearTimeout(priceDebounceRef.current);
+  }, [priceRange]);
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory, sortBy, priceRange, verifiedOnly, inStockOnly]);
+  }, [selectedCategory, sortBy, debouncedPriceRange, inStockOnly]);
 
   const fetchProducts = async () => {
     try {
@@ -30,7 +42,7 @@ export default function ProductsPage() {
         url += `category=${selectedCategory}&`;
       }
       
-      url += `minPrice=${priceRange[0]}&maxPrice=${priceRange[1]}`;
+      url += `minPrice=${debouncedPriceRange[0]}&maxPrice=${debouncedPriceRange[1]}`;
       
       if (inStockOnly) {
         url += `&inStock=true`;
@@ -204,10 +216,13 @@ export default function ProductsPage() {
                       <Link key={product._id} href={`/products/${product._id}`}>
                         <div className="bg-gradient-to-r from-white to-gray-50 border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg hover:border-blue-200 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
                           <div className="relative">
-                            <img
+                            <Image
                               src={product.images?.[0]?.url || "/placeholder.svg"}
                               alt={product.name}
+                              width={200}
+                              height={128}
                               className="w-full h-32 object-cover"
+                              unoptimized
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                             {product.supplier?.verified && (

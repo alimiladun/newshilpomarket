@@ -39,7 +39,7 @@ export default function Hero() {
 
   return (
     <>
-      <section className="relative overflow-hidden flex items-center justify-center py-16 lg:py-0 min-h-[92vh]">
+      <section className="relative overflow-hidden flex items-center justify-center py-16 lg:py-0 min-h-[92vh] md:mt-10">
 
         {/* ── Background ── */}
         <div className="absolute inset-0">
@@ -60,7 +60,7 @@ export default function Hero() {
           <div className="flex-1 w-full text-center lg:text-left">
 
             {/* Badge */}
-            <div className="flex justify-center lg:justify-start mb-5 anim-fade-up" style={{animationDelay:"0s"}}>
+            <div className="flex justify-center lg:justify-start mb-5 anim-fade-up md:mt-20" style={{animationDelay:"0s"}}>
               <span className="inline-flex items-center gap-2 glass text-white px-4 py-2 rounded-full text-xs sm:text-sm font-medium">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
