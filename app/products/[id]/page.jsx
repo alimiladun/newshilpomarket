@@ -4,10 +4,17 @@ import { useParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import ProductHeader from "../../../components/ProductHeader"
+import DirectContactButtons from "../../../components/DirectContactButtons"
+import AudioReaderButton from "../../../components/AudioReaderButton"
+import AssistedTradeModal from "../../../components/AssistedTradeModal"
+import SampleRequestModal from "../../../components/SampleRequestModal"
+import { useLanguage } from "../../../contexts/LanguageContext"
+import { getDirectCallUrl, getWhatsAppUrl, MARKETPLACE_HOTLINE } from "../../../lib/communication"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = ''; // relative path — works on any port
 
 export default function ProductDetailPage({ params }) {
+  const { isBn, toBanglaNumber, t } = useLanguage();
   const unwrappedParams = use(params);
   const routeParams = useParams();
   const productId = unwrappedParams?.id || routeParams?.id;
@@ -15,9 +22,11 @@ export default function ProductDetailPage({ params }) {
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState(0)
-  const [quantity, setQuantity] = useState(5)
-  const [activeTab, setActiveTab] = useState("description")
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [quantity, setQuantity] = useState(5);
+  const [activeTab, setActiveTab] = useState("description");
+  const [isSampleModalOpen, setIsSampleModalOpen] = useState(false);
+  const [isAssistedModalOpen, setIsAssistedModalOpen] = useState(false);
 
   useEffect(() => {
     if (productId) {
@@ -181,31 +190,50 @@ export default function ProductDetailPage({ params }) {
           <div className="space-y-3">
             <div>
               <div className="flex items-center space-x-2 mb-1">
-                <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">{product.category}</span>
+                <span className="bg-gray-100 text-gray-700 text-xs px-2.5 py-1 rounded-full font-semibold">{product.category}</span>
                 {product.verified && (
-                  <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">✓ Verified</span>
+                  <span className="bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-1 rounded-full font-bold">✓ {isBn ? "যাচাইকৃত মিল" : "Verified"}</span>
                 )}
                 {product.inStock && (
-                  <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">In Stock</span>
+                  <span className="bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-1 rounded-full font-bold">{isBn ? "স্টক আছে" : "In Stock"}</span>
                 )}
               </div>
-              <h1 className="text-xl font-bold text-gray-800 mb-1">{product.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">{product.name}</h1>
               <div className="flex items-center space-x-3 text-xs text-gray-600">
                 <div className="flex items-center">
                   <span className="text-yellow-500 mr-1">⭐</span>
-                  <span>{product.rating}</span>
-                  <span className="ml-1">({product.reviews} reviews)</span>
+                  <span className="font-bold">{isBn ? toBanglaNumber(product.rating || 4.5) : (product.rating || 4.5)}</span>
+                  <span className="ml-1 text-gray-400">({isBn ? toBanglaNumber(product.reviews || 0) : (product.reviews || 0)} {isBn ? "রিভিউ" : "reviews"})</span>
                 </div>
                 <span>📍 {product.location}</span>
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-2xl font-bold text-green-600 mb-1">
-                <span className="text-3xl font-extrabold">৳</span>{product.price.toLocaleString()}/{product.unit}
+            {/* Price Box with Bangla Audio Reader */}
+            <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-blue-700 mb-1">
+                  <span className="text-2xl sm:text-3xl font-extrabold mr-0.5">৳</span>
+                  {isBn ? toBanglaNumber(product.price?.toLocaleString()) : product.price?.toLocaleString()}
+                  <span className="text-sm font-semibold text-slate-500 ml-1">/{product.unit}</span>
+                </div>
+                <div className="text-xs font-semibold text-slate-500">
+                  {isBn ? "ন্যূনতম অর্ডার: " : "Minimum order: "}
+                  {isBn ? toBanglaNumber(product.minOrder) : product.minOrder} {product.unit} • {isBn ? "সর্বোচ্চ: " : "Max: "}
+                  {isBn ? toBanglaNumber(product.maxOrder) : product.maxOrder} {product.unit}
+                </div>
               </div>
-              <div className="text-xs text-gray-600">
-                Minimum order: {product.minOrder} {product.unit} • Maximum: {product.maxOrder} {product.unit}
+
+              <div className="shrink-0">
+                <AudioReaderButton
+                  productName={product.name}
+                  price={product.price}
+                  unit={product.unit}
+                  minOrder={product.minOrder}
+                  supplierName={supplier.name}
+                  location={supplier.location}
+                  variant="pill"
+                />
               </div>
             </div>
 
@@ -248,19 +276,56 @@ export default function ProductDetailPage({ params }) {
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-2">
-              <Link
-                href={`/purchase/${product._id}?quantity=${quantity}`}
-                className="w-full bg-blue-600 text-white py-2 px-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-center block text-xs"
-              >
-                Request Quote
-              </Link>
-              <div className="grid grid-cols-2 gap-2">
-                <button className="border border-gray-300 text-gray-700 py-1.5 px-2 rounded-lg hover:bg-gray-100 transition-colors text-xs">
-                  💬 Chat with Supplier
+            <div className="space-y-3">
+              {/* Direct Call & Instant WhatsApp */}
+              <DirectContactButtons
+                phone={supplier.phone}
+                productName={product.name}
+                price={product.price}
+                unit={product.unit}
+                supplierName={supplier.name}
+                variant="full"
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Link
+                  href={`/purchase/${product._id}?quantity=${quantity}`}
+                  className="w-full bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white py-3 px-3 rounded-xl font-bold transition-all text-center block text-xs sm:text-sm shadow-md shadow-blue-900/15"
+                >
+                  🛒 {isBn ? "অর্ডার বুকিং (Purchase)" : "Place Order"}
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setIsSampleModalOpen(true)}
+                  className="w-full bg-white hover:bg-blue-50 text-blue-700 border-2 border-blue-600 py-3 px-3 rounded-xl font-bold transition-all text-center block text-xs sm:text-sm shadow-xs"
+                >
+                  📦 {isBn ? "নমুনা পাঠান (Request Sample)" : "Request Sample"}
                 </button>
-                <button className="border border-gray-300 text-gray-700 py-1.5 px-2 rounded-lg hover:bg-gray-100 transition-colors text-xs">
-                  ❤️ Add to Wishlist
+              </div>
+
+              {/* Assisted Trade Verification Assurance Banner */}
+              <div className="p-3 bg-gradient-to-r from-blue-50 via-indigo-50 to-slate-50 border border-blue-200/90 rounded-2xl flex items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 font-bold shrink-0 text-lg">
+                    🛡️
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-900 leading-snug">
+                      {isBn ? "বড় অর্ডারে সরেজমিনে পরিদর্শন চান?" : "Need on-site mill inspection?"}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">
+                      {isBn ? "আমাদের প্রতিনিধি মিলে গিয়ে মাল ও ওজন টেস্ট করবে" : "Our agent inspects material quality before you pay"}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsAssistedModalOpen(true)}
+                  className="shrink-0 text-xs font-bold text-blue-700 hover:text-blue-800 bg-white border border-blue-300 hover:border-blue-400 px-3 py-1.5 rounded-xl shadow-2xs transition-all hover:bg-blue-50"
+                >
+                  {isBn ? "প্রতিনিধি বুক করুন" : "Book Agent"}
                 </button>
               </div>
             </div>
@@ -437,6 +502,70 @@ export default function ProductDetailPage({ params }) {
         )}
       </div>
       </div>
+
+      {/* Mobile Sticky Bottom Action Bar with 1-Tap Voice Audio & Sample */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-2 sm:hidden flex items-center gap-1.5 shadow-2xl">
+        <AudioReaderButton
+          productName={product?.name}
+          price={product?.price}
+          unit={product?.unit}
+          minOrder={product?.minOrder}
+          supplierName={supplier.name}
+          location={supplier.location}
+          variant="icon"
+          className="h-10 w-10 shrink-0 border-blue-200 bg-blue-50 text-blue-700"
+        />
+        <button
+          type="button"
+          onClick={() => setIsSampleModalOpen(true)}
+          className="bg-white hover:bg-blue-50 text-blue-700 border border-blue-600 font-bold py-2.5 px-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow-xs shrink-0"
+        >
+          <span>📦</span>
+          <span>{isBn ? "স্যাম্পল" : "Sample"}</span>
+        </button>
+        <a
+          href={getDirectCallUrl(supplier.phone || MARKETPLACE_HOTLINE)}
+          className="flex-1 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-bold py-2.5 px-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow"
+        >
+          <span>📞</span>
+          <span>{isBn ? "কল" : "Call"}</span>
+        </a>
+        <a
+          href={getWhatsAppUrl({
+            phone: supplier.phone || MARKETPLACE_HOTLINE,
+            productName: product?.name,
+            price: product?.price,
+            unit: product?.unit,
+            supplierName: supplier.name,
+          })}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 bg-[#25D366] hover:bg-[#20bd5a] active:bg-[#1caa51] text-white font-bold py-2.5 px-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow"
+        >
+          <span>💬</span>
+          <span>{isBn ? "হোয়াটসঅ্যাপ" : "WhatsApp"}</span>
+        </a>
+        <Link
+          href={`/purchase/${product?._id}?quantity=${quantity}`}
+          className="flex-1 bg-blue-800 hover:bg-blue-900 text-white font-bold py-2.5 px-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow text-center"
+        >
+          <span>🛒 {isBn ? "অর্ডার" : "Order"}</span>
+        </Link>
+      </div>
+
+      {/* Modals for Assisted Trade and Sample Request */}
+      <SampleRequestModal
+        isOpen={isSampleModalOpen}
+        onClose={() => setIsSampleModalOpen(false)}
+        product={product}
+        supplier={supplier}
+      />
+
+      <AssistedTradeModal
+        isOpen={isAssistedModalOpen}
+        onClose={() => setIsAssistedModalOpen(false)}
+        initialMaterial={product?.name}
+      />
     </div>
   )
 }

@@ -1,13 +1,20 @@
 "use client"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import Image from "next/image"
 import ProductHeader from "../../components/ProductHeader"
+import DirectContactButtons from "../../components/DirectContactButtons"
+import AudioReaderButton from "../../components/AudioReaderButton"
+import { useLanguage } from "../../contexts/LanguageContext"
 import { getRootCategories } from "@/lib/categoriesData"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+const API_BASE = ''; // relative paths — works on any port
 
-export default function ProductsPage() {
+function ProductsContent() {
+  const { t, isBn, toBanglaNumber } = useLanguage();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams?.get('search') || '';
+
   const categories = getRootCategories();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,15 +38,19 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory, sortBy, debouncedPriceRange, inStockOnly]);
+  }, [selectedCategory, sortBy, debouncedPriceRange, inStockOnly, searchQuery]);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      let url = `${API_BASE_URL}/api/products?`;
+      let url = `${API_BASE}/api/products?`;
       
+      if (searchQuery.trim()) {
+        url += `search=${encodeURIComponent(searchQuery.trim())}&`;
+      }
+
       if (selectedCategory !== 'all') {
-        url += `category=${selectedCategory}&`;
+        url += `category=${encodeURIComponent(selectedCategory)}&`;
       }
       
       url += `minPrice=${debouncedPriceRange[0]}&maxPrice=${debouncedPriceRange[1]}`;
@@ -69,7 +80,42 @@ export default function ProductsPage() {
     }
   };
 
-  const filteredProducts = products;
+  // Client-side exact match prioritization
+  const filteredProducts = [...products].sort((a, b) => {
+    if (!searchQuery.trim()) return 0;
+    const term = searchQuery.trim().toLowerCase();
+    const aName = (a.name || '').toLowerCase();
+    const bName = (b.name || '').toLowerCase();
+
+    // Exact match comes first
+    const aExact = aName === term;
+    const bExact = bName === term;
+    if (aExact && !bExact) return -1;
+    if (!aExact && bExact) return 1;
+
+    // Starts with term
+    const aStarts = aName.startsWith(term);
+    const bStarts = bName.startsWith(term);
+    if (aStarts && !bStarts) return -1;
+    if (!aStarts && bStarts) return 1;
+
+    // Contains term
+    const aHas = aName.includes(term);
+    const bHas = bName.includes(term);
+    if (aHas && !bHas) return -1;
+    if (!aHas && bHas) return 1;
+
+    return 0;
+  });
+
+  const getProductImage = (product) => {
+    return (
+      product.primaryImage ||
+      product.images?.[0]?.url ||
+      product.images?.[0] ||
+      "/placeholder.svg"
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -81,41 +127,40 @@ export default function ProductsPage() {
           <div className="lg:hidden mb-4">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg flex items-center justify-center space-x-2 shadow-md hover:bg-blue-700 transition-colors"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg flex items-center justify-center space-x-2 shadow-md hover:bg-blue-700 transition-colors font-bold text-sm"
             >
               <FilterIcon className="w-5 h-5" />
-              <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
+              <span>{showFilters ? (isBn ? "ফিল্টার লুকান" : "Hide Filters") : (isBn ? "ফিল্টার দেখুন" : "Show Filters")}</span>
             </button>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Filters Sidebar */}
-            {/* Added conditional rendering based on showFilters state and Tailwind's responsive classes */}
             <div className={`lg:w-1/5 ${showFilters ? "block" : "hidden"} lg:block`}>
               <div className="bg-white rounded-lg shadow p-4 sticky lg:top-20">
-                <h3 className="text-sm font-semibold text-gray-800 mb-4">Filters</h3>
+                <h3 className="text-sm font-bold text-gray-800 mb-4">{isBn ? "ফিল্টার ও ক্যাটাগরি" : "Filters"}</h3>
 
                 {/* Categories */}
                 <div className="mb-4">
-                  <h4 className="text-xs font-medium text-gray-700 mb-2">Categories</h4>
+                  <h4 className="text-xs font-semibold text-gray-700 mb-2">{isBn ? "ক্যাটাগরি" : "Categories"}</h4>
                   <div className="space-y-1">
                     <button
                       onClick={() => setSelectedCategory("all")}
-                      className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
+                      className={`w-full text-left px-2.5 py-2 rounded-lg text-xs transition-colors font-medium ${
                         selectedCategory === "all"
-                          ? "bg-blue-100 text-blue-800"
+                          ? "bg-blue-50 text-blue-800 font-bold border border-blue-200"
                           : "hover:bg-gray-100 text-gray-600"
                       }`}
                     >
-                      All Categories
+                      {isBn ? "সকল ক্যাটাগরি (All)" : "All Categories"}
                     </button>
                     {categories.map((category) => (
                       <button
                         key={category.id}
                         onClick={() => setSelectedCategory(category.name)}
-                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
+                        className={`w-full text-left px-2.5 py-2 rounded-lg text-xs transition-colors font-medium ${
                           selectedCategory === category.name
-                            ? "bg-blue-100 text-blue-800"
+                            ? "bg-blue-50 text-blue-800 font-bold border border-blue-200"
                             : "hover:bg-gray-100 text-gray-600"
                         }`}
                       >
@@ -127,7 +172,7 @@ export default function ProductsPage() {
 
                 {/* Price Range */}
                 <div className="mb-4">
-                  <h4 className="text-xs font-medium text-gray-700 mb-2">Price Range (৳/unit)</h4>
+                  <h4 className="text-xs font-semibold text-gray-700 mb-2">{isBn ? "দর সীমা (৳/ইউনিট)" : "Price Range (৳/unit)"}</h4>
                   <div className="space-y-2">
                     <input
                       type="range"
@@ -137,37 +182,37 @@ export default function ProductsPage() {
                       onChange={(e) => {
                         setPriceRange([priceRange[0], Number.parseInt(e.target.value)]);
                       }}
-                      className="w-full"
+                      className="w-full accent-blue-600"
                     />
-                    <div className="flex justify-between text-xs text-gray-600">
-                      <span>৳{priceRange[0]}</span>
-                      <span>৳{priceRange[1]}</span>
+                    <div className="flex justify-between text-xs text-gray-600 font-medium">
+                      <span>৳{isBn ? toBanglaNumber(priceRange[0]) : priceRange[0]}</span>
+                      <span>৳{isBn ? toBanglaNumber(priceRange[1]) : priceRange[1]}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Additional Filters */}
-                <div className="space-y-2">
+                <div className="space-y-2 pt-2 border-t border-gray-100">
                   <div>
-                    <label className="flex items-center space-x-2">
+                    <label className="flex items-center space-x-2 cursor-pointer">
                       <input 
                         type="checkbox" 
-                        className="rounded"
+                        className="rounded text-blue-600 focus:ring-blue-500"
                         checked={verifiedOnly}
                         onChange={(e) => setVerifiedOnly(e.target.checked)}
                       />
-                      <span className="text-xs text-gray-700">Verified Suppliers Only</span>
+                      <span className="text-xs text-gray-700 font-medium">{isBn ? "শুধু যাচাইকৃত বিক্রেতা" : "Verified Suppliers Only"}</span>
                     </label>
                   </div>
                   <div>
-                    <label className="flex items-center space-x-2">
+                    <label className="flex items-center space-x-2 cursor-pointer">
                       <input 
                         type="checkbox" 
-                        className="rounded"
+                        className="rounded text-blue-600 focus:ring-blue-500"
                         checked={inStockOnly}
                         onChange={(e) => setInStockOnly(e.target.checked)}
                       />
-                      <span className="text-xs text-gray-700">In Stock</span>
+                      <span className="text-xs text-gray-700 font-medium">{isBn ? "স্টক আছে এমন পণ্য" : "In Stock"}</span>
                     </label>
                   </div>
                 </div>
@@ -176,24 +221,49 @@ export default function ProductsPage() {
 
             {/* Products Grid */}
             <div className="lg:w-4/5 flex-grow">
+              {/* Active Search Banner Indicator */}
+              {searchQuery && (
+                <div className="flex items-center justify-between gap-3 mb-3 bg-blue-50 border border-blue-200 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-blue-900 shadow-xs">
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="text-base">🔍</span>
+                    <span>{isBn ? "অনুসন্ধান ফলাফল:" : "Search results for:"}</span>
+                    <span className="font-extrabold text-blue-700 bg-white px-2 py-0.5 rounded-md border border-blue-200">
+                      "{searchQuery}"
+                    </span>
+                  </div>
+                  <Link
+                    href="/products"
+                    className="shrink-0 text-xs font-bold text-red-600 hover:text-red-800 bg-white hover:bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <span>✕</span>
+                    <span>{isBn ? "ফিল্টার মুছুন" : "Clear"}</span>
+                  </Link>
+                </div>
+              )}
+
               {/* Sort and View Options */}
-              <div className="flex flex-col sm:flex-row justify-between items-center mb-3 bg-white rounded-lg p-2 shadow-sm">
+              <div className="flex flex-col sm:flex-row justify-between items-center mb-3 bg-white rounded-lg p-2.5 shadow-sm border border-gray-100">
                 <div className="flex items-center space-x-4 mb-2 sm:mb-0">
-                  <span className="text-sm text-gray-600">
-                    {loading ? 'Loading...' : `${filteredProducts.length} products`}
+                  <span className="text-sm font-semibold text-gray-700">
+                    {loading
+                      ? (isBn ? "পণ্য লোড হচ্ছে..." : "Loading products...")
+                      : (isBn
+                          ? `${toBanglaNumber(filteredProducts.length)} টি কাঁচামাল প্রদর্শিত হচ্ছে`
+                          : `${filteredProducts.length} products found`)}
                   </span>
                 </div>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-500 font-medium">{isBn ? "সাজান:" : "Sort:"}</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                    className="border border-gray-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs font-semibold bg-white"
                   >
-                    <option value="featured">Featured</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="rating">Highest Rated</option>
-                    <option value="newest">Newest</option>
+                    <option value="featured">{isBn ? "বাছাইকৃত কাঁচামাল" : "Featured"}</option>
+                    <option value="price-low">{isBn ? "কম দর থেকে বেশি" : "Price: Low to High"}</option>
+                    <option value="price-high">{isBn ? "বেশি দর থেকে কম" : "Price: High to Low"}</option>
+                    <option value="rating">{isBn ? "সেরা রেটিং" : "Highest Rated"}</option>
+                    <option value="newest">{isBn ? "নতুন পণ্য" : "Newest"}</option>
                   </select>
                 </div>
               </div>
@@ -205,78 +275,119 @@ export default function ProductsPage() {
                   <p className="mt-4 text-gray-600">Loading products...</p>
                 </div>
               ) : filteredProducts.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-lg shadow">
-                  <p className="text-gray-600">No products found</p>
+                <div className="text-center py-16 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 max-w-lg mx-auto">
+                  <div className="text-4xl mb-3">🔍</div>
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
+                    {isBn ? "কোনো কাঁচামাল পাওয়া যায়নি" : "No raw materials found"}
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-5">
+                    {searchQuery
+                      ? (isBn ? `"${searchQuery}" এর জন্য কোনো পণ্য পাওয়া যায়নি। বানান যাচাই করুন অথবা অন্য কাঁচামালের নাম লিখুন।` : `No products match "${searchQuery}". Please check your spelling or search another material.`)
+                      : (isBn ? "এই ফিল্টারের আওতায় বর্তমানে কোনো পণ্য নেই।" : "No products available under current filters.")}
+                  </p>
+                  <Link
+                    href="/products"
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-900/15"
+                  >
+                    <span>{isBn ? "সকল কাঁচামাল দেখুন →" : "View All Products →"}</span>
+                  </Link>
                 </div>
               ) : (
                 <>
-                  {/* Products Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                    {filteredProducts.map((product) => (
-                      <Link key={product._id} href={`/products/${product._id}`}>
-                        <div className="bg-gradient-to-r from-white to-gray-50 border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg hover:border-blue-200 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
-                          <div className="relative">
-                            <Image
-                              src={product.images?.[0]?.url || "/placeholder.svg"}
+                  {/* Products Grid - Equal Height Cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-stretch">
+                    {filteredProducts.map((product, index) => (
+                      <Link key={product._id} href={`/products/${product._id}`} className="group flex flex-col h-full">
+                        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-300 transition-all duration-300 flex flex-col h-full justify-between">
+                          {/* Image Box - Fixed uniform aspect ratio */}
+                          <div className="relative w-full aspect-[4/3] bg-gray-100 overflow-hidden flex-shrink-0">
+                            <img
+                              src={getProductImage(product)}
                               alt={product.name}
-                              width={200}
-                              height={128}
-                              className="w-full h-32 object-cover"
-                              unoptimized
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading={index < 8 ? "eager" : "lazy"}
+                              decoding="async"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent"></div>
                             {product.supplier?.verified && (
-                              <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg">
-                                ✓ Verified
+                              <div className="absolute top-2 left-2 bg-blue-800 text-white text-[11px] px-2 py-0.5 rounded-full font-bold shadow-md">
+                                ✓ {t("common.verified", "Verified")}
                               </div>
                             )}
                             {!product.inStock && (
-                              <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg">
-                                Out of Stock
+                              <div className="absolute top-2 right-2 bg-red-600 text-white text-[11px] px-2 py-0.5 rounded-full font-bold shadow-md">
+                                {t("common.outOfStock", "Out of Stock")}
                               </div>
                             )}
                           </div>
 
-                          <div className="p-3">
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex-1">
-                                <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-1">
-                                  {product.name}
-                                </h3>
-                                <p className="text-xs text-gray-600 font-medium">{product.supplierName}</p>
-                              </div>
-                              {product.inStock && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 font-medium">
-                                  <div className="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
-                                  In Stock
-                                </span>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center mb-2">
-                              <div className="flex items-center mr-4">
-                                <span className="text-yellow-400 text-xs">★</span>
-                                <span className="text-xs font-medium text-gray-700 ml-1">
-                                  {product.rating ? product.rating.toFixed(1) : 'New'}
-                                </span>
-                                <span className="text-xs text-gray-500 ml-1">
-                                  ({product.reviewCount || 0})
-                                </span>
+                          {/* Card Body - Equalized layout */}
+                          <div className="p-3.5 flex flex-col flex-1 justify-between">
+                            {/* Top Content */}
+                            <div>
+                              <h3 className="text-sm font-bold text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-2 h-10 leading-snug mb-1">
+                                {product.name}
+                              </h3>
+                              <p className="text-xs text-gray-500 font-medium truncate mb-2">
+                                🏭 {product.supplierName || "প্রস্তুতকারক"}
+                              </p>
+
+                              {/* Rating & Stock Badge Row */}
+                              <div className="flex items-center justify-between h-6 mb-2">
+                                <div className="flex items-center text-xs font-semibold text-gray-700">
+                                  <span className="text-amber-400 mr-1">★</span>
+                                  <span>
+                                    {product.rating ? (isBn ? toBanglaNumber(product.rating.toFixed(1)) : product.rating.toFixed(1)) : (isBn ? "নতুন" : "New")}
+                                  </span>
+                                  <span className="text-gray-400 ml-1 font-normal text-[11px]">
+                                    ({isBn ? toBanglaNumber(product.reviewCount || 0) : (product.reviewCount || 0)})
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <AudioReaderButton
+                                    productName={product.name}
+                                    price={product.price}
+                                    unit={product.unit}
+                                    minOrder={product.minOrder}
+                                    supplierName={product.supplierName}
+                                    location={product.location}
+                                    variant="icon"
+                                    className="p-1 h-6 w-6 rounded-md text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                                  />
+                                  {product.inStock && (
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] bg-blue-50 text-blue-700 font-bold border border-blue-200">
+                                      <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mr-1"></span>
+                                      {t("common.inStock", "In Stock")}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
 
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <span className="text-sm font-bold text-gray-900">
-                                  <span className="text-base font-extrabold">৳</span>{product.price}/{product.unit}
-                                </span>
+                            {/* Bottom Content - Pinned to bottom */}
+                            <div className="mt-auto pt-2.5 border-t border-gray-100">
+                              <div className="flex items-baseline justify-between mb-2">
+                                <div className="text-sm sm:text-base font-black text-blue-700">
+                                  <span>৳</span>{isBn ? toBanglaNumber(product.price?.toLocaleString()) : product.price?.toLocaleString()}
+                                  <span className="text-xs font-medium text-gray-500 ml-0.5">/{product.unit || 'unit'}</span>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-[11px] font-bold text-gray-500">
+                                    {isBn ? "কমপক্ষে: " : "Min: "}
+                                    {isBn ? toBanglaNumber(product.minOrder) : product.minOrder} {product.unit}
+                                  </span>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <span className="text-xs text-gray-500 block">Min order</span>
-                                <span className="text-xs font-medium text-gray-700">
-                                  {product.minOrder} {product.unit}
-                                </span>
-                              </div>
+
+                              {/* Direct Contact Buttons */}
+                              <DirectContactButtons
+                                phone={product.supplier?.phone || product.phone}
+                                productName={product.name}
+                                price={product.price}
+                                unit={product.unit}
+                                supplierName={product.supplierName}
+                                variant="card"
+                              />
                             </div>
                           </div>
                         </div>
@@ -309,6 +420,20 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        </div>
+      }
+    >
+      <ProductsContent />
+    </Suspense>
   )
 }
 

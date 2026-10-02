@@ -10,7 +10,8 @@ const productSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: [true, 'Product description is required'],
+    required: false,
+    default: 'উচ্চমানের পাইকারি কাঁচামাল। সরাসরি প্রস্তুতকারক ও মিল থেকে সরবরাহ। | High quality wholesale raw materials.',
     trim: true,
     maxlength: [5000, 'Description cannot exceed 5000 characters']
   },
@@ -25,7 +26,11 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Unit is required'],
     default: 'tons',
-    enum: ['kg', 'tons', 'pieces', 'meters', 'liters', 'units', 'boxes', 'pallets']
+    enum: [
+      'kg', 'tons', 'ton', 'pieces', 'piece', 'meters', 'meter',
+      'liters', 'liter', 'units', 'boxes', 'box', 'pallets',
+      'mon', 'bag', 'bags', 'cft', 'sqft', 'bundle', 'bundles', 'feet', 'foot', 'thak', 'drum'
+    ]
   },
   
   // Order Limits
@@ -233,6 +238,10 @@ productSchema.methods.updateStock = async function(quantity) {
   }
   return false;
 };
+
+if (process.env.NODE_ENV === 'development' && mongoose.models.Product) {
+  delete mongoose.models.Product;
+}
 
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 

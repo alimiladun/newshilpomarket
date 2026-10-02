@@ -193,3 +193,70 @@ export async function DELETE(request, { params }) {
     }, { status: 500 });
   }
 }
+
+// PATCH - Quick partial update (e.g. stock toggle, price change)
+export async function PATCH(request, { params }) {
+  try {
+    await connectDB();
+
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({
+        success: false,
+        message: 'Authentication required'
+      }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded || decoded.type !== 'supplier') {
+      return NextResponse.json({
+        success: false,
+        message: 'Invalid authentication'
+      }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const body = await request.json();
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return NextResponse.json({
+        success: false,
+        message: 'Product not found'
+      }, { status: 404 });
+    }
+
+    if (product.supplier.toString() !== decoded.id) {
+      return NextResponse.json({
+        success: false,
+        message: 'Unauthorized'
+      }, { status: 403 });
+    }
+
+    // Apply allowed partial updates
+    const updates = {};
+    if (body.inStock !== undefined) updates.inStock = Boolean(body.inStock);
+    if (body.price !== undefined) updates.price = parseFloat(body.price);
+    if (body.stockQuantity !== undefined) updates.stockQuantity = parseInt(body.stockQuantity);
+    if (body.minOrder !== undefined) updates.minOrder = parseInt(body.minOrder);
+
+    const updated = await Product.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true }
+    );
+
+    return NextResponse.json({
+      success: true,
+      message: 'Product updated successfully',
+      product: updated
+    }, { status: 200 });
+
+  } catch (error) {
+    console.error('Patch product error:', error);
+    return NextResponse.json({
+      success: false,
+      message: error.message || 'Failed to update product'
+    }, { status: 500 });
+  }
+}

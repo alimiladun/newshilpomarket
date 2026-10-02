@@ -12,8 +12,13 @@ const transactionSchema = new mongoose.Schema({
   },
   buyer: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Buyer',
+    refPath: 'buyerModel',
     required: true
+  },
+  buyerModel: {
+    type: String,
+    enum: ['Buyer', 'Supplier'],
+    default: 'Buyer'
   },
   seller: {
     type: mongoose.Schema.Types.ObjectId,
@@ -48,7 +53,7 @@ const transactionSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['bank_transfer', 'mobile_banking', 'cash_on_delivery', 'letter_of_credit', 'escrow'],
+    enum: ['bank_transfer', 'mobile_banking', 'bkash', 'nagad', 'cash_on_delivery', 'challan', 'letter_of_credit', 'trade_finance', 'escrow'],
     required: true
   },
   description: {

@@ -7,8 +7,13 @@ const orderSchema = new mongoose.Schema({
   },
   buyer: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Buyer',
+    refPath: 'buyerModel',
     required: true
+  },
+  buyerModel: {
+    type: String,
+    enum: ['Buyer', 'Supplier'],
+    default: 'Buyer'
   },
   supplier: {
     type: mongoose.Schema.Types.ObjectId,
@@ -41,6 +46,11 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  deliveryType: {
+    type: String,
+    enum: ['truck_delivery', 'buyer_pickup'],
+    default: 'truck_delivery'
+  },
   shippingCost: {
     type: Number,
     default: 0
@@ -57,7 +67,11 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  // Shipping Information
+  // Contact & Shipping Information
+  contactPhone: {
+    type: String,
+    default: ''
+  },
   deliveryAddress: {
     type: String,
     required: true
@@ -77,13 +91,30 @@ const orderSchema = new mongoose.Schema({
   // Payment Information
   paymentMethod: {
     type: String,
-    enum: ['bank_transfer', 'letter_of_credit', 'trade_finance', 'escrow'],
+    enum: [
+      'bank_transfer',
+      'bkash',
+      'nagad',
+      'cash_on_delivery',
+      'challan',
+      'letter_of_credit',
+      'trade_finance',
+      'escrow'
+    ],
     required: true
   },
   paymentStatus: {
     type: String,
     enum: ['pending', 'processing', 'completed', 'failed', 'refunded'],
     default: 'pending'
+  },
+  paymentDetails: {
+    trxId: { type: String, default: '' },
+    senderNumber: { type: String, default: '' },
+    bankName: { type: String, default: '' },
+    depositSlipUrl: { type: String, default: '' },
+    advanceAmount: { type: Number, default: 0 },
+    dueAmount: { type: Number, default: 0 }
   },
   // Order Status
   orderStatus: {

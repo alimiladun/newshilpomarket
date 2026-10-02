@@ -19,11 +19,11 @@ export async function PUT(request, { params }) {
     }
 
     const decoded = verifyToken(token);
-    if (!decoded || decoded.type !== 'buyer') {
+    if (!decoded) {
       return NextResponse.json({
         success: false,
-        message: 'Buyer access required'
-      }, { status: 403 });
+        message: 'Invalid or expired session'
+      }, { status: 401 });
     }
 
     const body = await request.json();

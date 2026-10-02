@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { getRootCategories } from '@/lib/categoriesData';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = ''; // relative path
 
 export default function SellerProductsPage() {
   const router = useRouter();
@@ -60,7 +60,7 @@ export default function SellerProductsPage() {
     try {
       setLoading(true);
       const token = localStorage.getItem('supplierToken');
-      const response = await fetch(`${API_BASE_URL}/api/products?supplierId=${supplierId}`, {
+      const response = await fetch(`/api/products?supplierId=${supplierId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -164,8 +164,8 @@ export default function SellerProductsPage() {
     try {
       const token = localStorage.getItem('supplierToken');
       const url = editingProduct 
-        ? `${API_BASE_URL}/api/products/${editingProduct._id}`
-        : `${API_BASE_URL}/api/products`;
+        ? `/api/products/${editingProduct._id}`
+        : `/api/products`;
       
       const method = editingProduct ? 'PUT' : 'POST';
 
@@ -237,7 +237,7 @@ export default function SellerProductsPage() {
 
     try {
       const token = localStorage.getItem('supplierToken');
-      const response = await fetch(`${API_BASE_URL}/api/products/${productId}`, {
+      const response = await fetch(`/api/products/${productId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

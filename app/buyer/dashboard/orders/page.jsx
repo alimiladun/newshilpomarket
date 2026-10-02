@@ -2,13 +2,16 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+import { toast } from "sonner";
+import InvoiceModal from "@/components/InvoiceModal";
+import { Printer } from "lucide-react";
+const API_BASE_URL = ''; // relative path
 export default function BuyerOrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [selectedChallan, setSelectedChallan] = useState(null);
   useEffect(() => {
     fetchOrders();
   }, [filter]);
@@ -22,8 +25,8 @@ export default function BuyerOrdersPage() {
       }
       const url =
         filter === "all"
-          ? `${API_BASE_URL}/api/buyers/orders`
-          : `${API_BASE_URL}/api/buyers/orders?status=${filter}`;
+          ? `/api/buyers/orders`
+          : `/api/buyers/orders?status=${filter}`;
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -74,7 +77,7 @@ export default function BuyerOrdersPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE_URL}/api/buyers/orders/${orderId}`, {
+      const response = await fetch(`/api/buyers/orders/${orderId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -87,15 +90,15 @@ export default function BuyerOrdersPage() {
       });
 
       if (response.ok) {
-        alert(accepted ? 'Quote accepted successfully!' : 'Quote rejected');
+        toast.success(accepted ? 'Quote accepted successfully!' : 'Quote rejected');
         fetchOrders();
       } else {
         const data = await response.json();
-        alert(data.message || `Failed to ${accepted ? 'accept' : 'reject'} quote`);
+        toast.error(data.message || `Failed to ${accepted ? 'accept' : 'reject'} quote`);
       }
     } catch (error) {
       console.error('Error responding to quote:', error);
-      alert('Failed to respond to quote');
+      toast.error('Failed to respond to quote');
     }
   };
   return (
@@ -230,13 +233,13 @@ export default function BuyerOrdersPage() {
                         Quantity: {order.quantity} {order.productSnapshot?.unit}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Unit Price: ${order.unitPrice?.toLocaleString()}
+                        Unit Price: ৳{order.unitPrice?.toLocaleString()}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">Total Amount</p>
                       <p className="text-xl font-bold text-gray-900">
-                        ${order.totalAmount?.toLocaleString()}
+                        ৳{order.totalAmount?.toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -247,7 +250,7 @@ export default function BuyerOrdersPage() {
                       <h5 className="font-semibold text-blue-900 mb-2">New Quote Received!</h5>
                       <div className="space-y-1 text-sm">
                         <p className="text-blue-800">
-                          <span className="font-medium">Quote Amount:</span> ${order.quoteDetails.quoteAmount?.toLocaleString()}
+                          <span className="font-medium">Quote Amount:</span> ৳{order.quoteDetails.quoteAmount?.toLocaleString()}
                         </p>
                         {order.quoteDetails.quoteValidUntil && (
                           <p className="text-blue-800">
@@ -291,8 +294,12 @@ export default function BuyerOrdersPage() {
                           </button>
                         </>
                       )}
-                      <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
-                        View Details
+                      <button 
+                        onClick={() => setSelectedChallan(order)}
+                        className="px-3.5 py-2 text-sm font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 flex items-center gap-1.5 transition-colors"
+                      >
+                        <Printer className="w-4 h-4" />
+                        <span>চালান প্রিন্ট</span>
                       </button>
                       {order.orderStatus === "delivered" &&
                         !order.buyerRating && (
@@ -308,6 +315,14 @@ export default function BuyerOrdersPage() {
           </div>
         )}
       </div>
+
+      {selectedChallan && (
+        <InvoiceModal
+          isOpen={!!selectedChallan}
+          order={selectedChallan}
+          onClose={() => setSelectedChallan(null)}
+        />
+      )}
     </div>
   );
 }

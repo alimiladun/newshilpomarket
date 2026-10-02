@@ -1,16 +1,26 @@
 "use client"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "../contexts/AuthContext"
 
+import VoiceSearchButton from "./VoiceSearchButton"
+
 export default function ProductHeader() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const initialSearch = searchParams?.get("search") || ""
+
   const [isScrolled, setIsScrolled] = useState(false)
-  const [searchValue, setSearchValue] = useState("")
+  const [searchValue, setSearchValue] = useState(initialSearch)
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { user, logout } = useAuth()
-  const router = useRouter()
+
+  useEffect(() => {
+    const q = searchParams?.get("search") || ""
+    setSearchValue(q)
+  }, [searchParams])
 
   // Helper function to get user display info
   const getUserDisplayInfo = () => {
@@ -102,29 +112,49 @@ export default function ProductHeader() {
           {/* Advanced Search Bar (Desktop Only) */}
           <div className="hidden md:block flex-1 max-w-2xl mx-8">
             <div className="relative">
-              <div className="flex">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (searchValue.trim()) {
+                    router.push(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+                  } else {
+                    router.push('/products');
+                  }
+                }}
+                className="flex items-center bg-gray-50 border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500"
+              >
                 <input
                   type="text"
-                  placeholder="Search for products, suppliers, materials..."
+                  placeholder="কাঁচামাল খুঁজুন... / Search products, materials..."
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                  className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="flex-1 px-4 py-3 bg-transparent outline-none text-sm font-medium"
                 />
-                <select className="px-3 py-3 bg-gray-50 border-t border-b border-gray-300 text-sm text-gray-600 focus:outline-none">
-                  <option>All Categories</option>
-                  <option>Metals & Alloys</option>
-                  <option>Plastics</option>
-                  <option>Chemicals</option>
-                  <option>Textiles</option>
+                <VoiceSearchButton
+                  onResult={(text) => {
+                    setSearchValue(text);
+                    router.push(`/products?search=${encodeURIComponent(text.trim())}`);
+                  }}
+                  className="mr-1"
+                />
+                <select className="px-3 py-3 bg-gray-100 border-l border-gray-300 text-xs text-gray-700 font-medium focus:outline-none">
+                  <option value="all">সকল ক্যাটাগরি</option>
+                  <option value="metals">লোহা ও স্টিল</option>
+                  <option value="plastics">প্লাস্টিক</option>
+                  <option value="chemicals">রাসায়নিক</option>
+                  <option value="textiles">তুলা ও সুতা</option>
                 </select>
-                <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-r-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button
+                  type="submit"
+                  className="px-5 py-3 bg-blue-700 hover:bg-blue-800 text-white transition-all duration-200 focus:outline-none"
+                >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </button>
-              </div>
+              </form>
               
               {/* Advanced Search Suggestions */}
               {isSearchFocused && (

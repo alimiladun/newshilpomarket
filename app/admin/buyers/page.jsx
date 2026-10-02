@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Search, Mail, Phone, Building, Calendar, Globe, Users, Edit, Trash2, Plus, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = ''; // relative path
 
 export default function AdminBuyersPage() {
   const router = useRouter();
@@ -66,9 +66,9 @@ export default function AdminBuyersPage() {
     try {
       setLoading(true);
       const adminToken = localStorage.getItem('adminToken');
-      console.log('Fetching buyers from:', `${API_BASE_URL}/api/admin/buyers`);
+      console.log('Fetching buyers from:', `/api/admin/buyers`);
       
-      const response = await fetch(`${API_BASE_URL}/api/admin/buyers`, {
+      const response = await fetch(`/api/admin/buyers`, {
         headers: {
           'Authorization': `Bearer ${adminToken}`,
         },
@@ -116,7 +116,7 @@ export default function AdminBuyersPage() {
       setProcessingId('creating');
       const adminToken = localStorage.getItem('adminToken');
       
-      const response = await fetch(`${API_BASE_URL}/api/admin/buyers`, {
+      const response = await fetch(`/api/admin/buyers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ export default function AdminBuyersPage() {
       setProcessingId(selectedBuyer._id);
       const adminToken = localStorage.getItem('adminToken');
       
-      const response = await fetch(`${API_BASE_URL}/api/admin/buyers`, {
+      const response = await fetch(`/api/admin/buyers`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ export default function AdminBuyersPage() {
       setProcessingId(selectedBuyer._id);
       const adminToken = localStorage.getItem('adminToken');
       
-      const response = await fetch(`${API_BASE_URL}/api/admin/buyers?buyerId=${selectedBuyer._id}`, {
+      const response = await fetch(`/api/admin/buyers?buyerId=${selectedBuyer._id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${adminToken}`,

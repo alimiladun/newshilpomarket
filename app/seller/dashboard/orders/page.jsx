@@ -2,8 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import InvoiceModal from '@/components/InvoiceModal';
+import { Printer } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = ''; // relative path
 
 export default function SellerOrdersPage() {
   const router = useRouter();
@@ -12,6 +15,7 @@ export default function SellerOrdersPage() {
   const [filter, setFilter] = useState('all');
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedChallan, setSelectedChallan] = useState(null);
   const [quoteForm, setQuoteForm] = useState({
     quoteAmount: '',
     quoteValidUntil: '',
@@ -27,13 +31,13 @@ export default function SellerOrdersPage() {
       setLoading(true);
       const token = localStorage.getItem('token');
       if (!token) {
-        router.push('/suppliers/login');
+        router.push('/auth/login');
         return;
       }
 
       const url = filter === 'all' 
-        ? `${API_BASE_URL}/api/suppliers/orders`
-        : `${API_BASE_URL}/api/suppliers/orders?status=${filter}`;
+        ? `/api/suppliers/orders`
+        : `/api/suppliers/orders?status=${filter}`;
 
       const response = await fetch(url, {
         headers: {
@@ -46,7 +50,7 @@ export default function SellerOrdersPage() {
         setOrders(data.orders || []);
       } else if (response.status === 401) {
         localStorage.removeItem('token');
-        router.push('/suppliers/login');
+        router.push('/auth/login');
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -96,7 +100,7 @@ export default function SellerOrdersPage() {
   const submitQuote = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/suppliers/orders/${selectedOrder._id}`, {
+      const response = await fetch(`/api/suppliers/orders/${selectedOrder._id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -109,34 +113,30 @@ export default function SellerOrdersPage() {
       });
 
       if (response.ok) {
-        alert('Quote sent successfully!');
+        toast.success('Quote sent successfully!');
         setShowQuoteModal(false);
         fetchOrders();
       } else {
         const data = await response.json();
-        alert(data.message || 'Failed to send quote');
+        toast.error(data.message || 'Failed to send quote');
       }
     } catch (error) {
       console.error('Error sending quote:', error);
-      alert('Failed to send quote');
+      toast.error('Failed to send quote');
     }
   };
 
   const updateOrderStatus = async (orderId, newStatus) => {
-    if (!confirm(`Are you sure you want to change status to ${getStatusText(newStatus)}?`)) {
-      return;
-    }
-
     try {
       const token = localStorage.getItem('token');
       let trackingNumber = null;
       
       if (newStatus === 'shipping') {
-        trackingNumber = prompt('Please enter tracking number:');
+        trackingNumber = prompt('Please enter tracking number / truck plate:');
         if (!trackingNumber) return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/suppliers/orders/${orderId}`, {
+      const response = await fetch(`/api/suppliers/orders/${orderId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -150,22 +150,19 @@ export default function SellerOrdersPage() {
       });
 
       if (response.ok) {
-        alert('Order status updated successfully!');
+        toast.success(`Order status updated to ${getStatusText(newStatus)}!`);
         fetchOrders();
       } else {
         const data = await response.json();
-        alert(data.message || 'Failed to update status');
+        toast.error(data.message || 'Failed to update status');
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Failed to update status');
+      toast.error('Failed to update status');
     }
   };
 
   const rejectOrder = async (orderId) => {
-    if (!confirm('Are you sure you want to reject this order?')) {
-      return;
-    }
     await updateOrderStatus(orderId, 'rejected');
   };
 
@@ -261,12 +258,12 @@ export default function SellerOrdersPage() {
                         Quantity: {order.quantity} {order.productSnapshot?.unit}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Unit Price: ${order.unitPrice?.toLocaleString()}
+                        Unit Price: ৳{order.unitPrice?.toLocaleString()}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">Total Amount</p>
-                      <p className="text-xl font-bold text-gray-900">${order.totalAmount?.toLocaleString()}</p>
+                      <p className="text-xl font-bold text-gray-900">৳{order.totalAmount?.toLocaleString()}</p>
                     </div>
                   </div>
 
@@ -332,8 +329,12 @@ export default function SellerOrdersPage() {
                           </button>
                         )}
                         
-                        <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
-                          View Details
+                        <button 
+                          onClick={() => setSelectedChallan(order)}
+                          className="px-3.5 py-2 text-sm font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 flex items-center gap-1.5 transition-colors"
+                        >
+                          <Printer className="w-4 h-4" />
+                          <span>চালান প্রিন্ট</span>
                         </button>
                       </div>
                     </div>
@@ -369,7 +370,7 @@ export default function SellerOrdersPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Quote Amount ($)
+                  Quote Amount (৳ BDT)
                 </label>
                 <input
                   type="number"
@@ -424,6 +425,13 @@ export default function SellerOrdersPage() {
             </div>
           </div>
         </div>
+      )}
+      {selectedChallan && (
+        <InvoiceModal
+          isOpen={!!selectedChallan}
+          order={selectedChallan}
+          onClose={() => setSelectedChallan(null)}
+        />
       )}
     </div>
   );

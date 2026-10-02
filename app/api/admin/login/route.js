@@ -26,12 +26,12 @@ export async function POST(request) {
     let admin = await Admin.findOne({ email }).select('+password');
 
     // If admin doesn't exist and credentials match the default, create it
-    if (!admin && email === 'shilpomarket@gmail.com' && password === 'shilpomarket-admin') {
+    if (!admin && email === 'admin@shilpomarket.com' && password === 'ShilpoMarket#Admin2026') {
       console.log('Creating default admin account...');
       admin = await Admin.create({
-        email: 'shilpomarket@gmail.com',
-        password: 'shilpomarket-admin',
-        name: 'ShilpoMarket Admin',
+        email: 'admin@shilpomarket.com',
+        password: 'ShilpoMarket#Admin2026',
+        name: 'ShilpoMarket Master Admin',
         role: 'admin'
       });
       // Fetch with password for verification

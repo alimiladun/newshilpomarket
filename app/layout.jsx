@@ -1,7 +1,9 @@
 
 import "./globals.css"
 import Chatbot from "../components/Chatbot"
+import PWAInstaller from "../components/PWAInstaller"
 import { AuthProvider } from "../contexts/AuthContext"
+import { LanguageProvider } from "../contexts/LanguageContext"
 import { Toaster } from "../components/ui/sonner"
 
 const SEO = {
@@ -52,15 +54,14 @@ export default function RootLayout({ children }) {
         <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href={SEO.url} />
-        <link rel="icon" type="image/png" href="/logo3.png" sizes="180x180" />
-        <link rel="icon" type="image/png" href="/logo3.png" sizes="180x180" />
-        <link rel="icon" type="image/png" href="/logo3.png" sizes="180x180" />
-        <link rel="icon" type="image/png" href="/logo3.png" sizes="256x256" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32" />
+        <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16" />
         <link rel="shortcut icon" type="image/png" href="/logo3.png" />
-        <link rel="apple-touch-icon" href="/logo3.png" sizes="180x180" />
-        <meta name="msapplication-TileImage" content="/logo3.png" />
-        <meta name="msapplication-TileColor" content="#0a192f" />
-        <meta name="theme-color" content="#0a192f" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <meta name="msapplication-TileImage" content="/icons/icon-192x192.png" />
+        <meta name="msapplication-TileColor" content="#1e40af" />
+        <meta name="theme-color" content="#1e40af" />
         <meta name="application-name" content="ShilpoMarket" />
         <meta name="apple-mobile-web-app-title" content="ShilpoMarket" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -73,13 +74,13 @@ export default function RootLayout({ children }) {
         <meta property="og:url" content={SEO.url} />
         <meta property="og:image" content={SEO.image} />
         <meta property="og:site_name" content="ShilpoMarket" />
-        <meta property="og:locale" content="en_IN" />
+        <meta property="og:locale" content="bn_BD" />
         <meta property="og:author" content={SEO.author} />
         <meta property="og:publisher" content={SEO.publisher} />
         <meta property="og:email" content="info@shilpomarket.com" />
-        <meta property="og:phone_number" content="+91-0000000000" />
-        <meta property="og:country-name" content="India, Bangladesh, Pakistan, Nepal, Asia, Global" />
-        <meta property="og:industry" content="B2B, Marketplace, Trading, Sourcing, Procurement, Manufacturing, Wholesale, Retail, Export, Import, Distribution, Logistics, Supply Chain, Industrial, Construction, Electronics, Machinery, Packaging, Agriculture, Chemicals, Metals, Plastics, Textile, Eco-friendly, Sustainable, MSME, SME, Enterprise, Startup, E-commerce, Digital Marketplace, Online Trading" />
+        <meta property="og:phone_number" content="+8801401658685" />
+        <meta property="og:country-name" content="Bangladesh" />
+        <meta property="og:industry" content="B2B, Marketplace, Trading, Sourcing, Procurement, Manufacturing, Wholesale, Raw Materials" />
         {/* Twitter Card tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={SEO.title} />
@@ -87,10 +88,6 @@ export default function RootLayout({ children }) {
         <meta name="twitter:image" content={SEO.image} />
         <meta name="twitter:site" content="@ShilpoMarket" />
         <meta name="twitter:creator" content="@ShilpoMarket" />
-        <meta name="twitter:label1" content="Business Type" />
-        <meta name="twitter:data1" content="B2B, Marketplace, Trading, Sourcing, Procurement, Manufacturing, Wholesale, Retail, Export, Import, Distribution, Logistics, Supply Chain, Industrial, Construction, Electronics, Machinery, Packaging, Agriculture, Chemicals, Metals, Plastics, Textile, Eco-friendly, Sustainable, MSME, SME, Enterprise, Startup, E-commerce, Digital Marketplace, Online Trading" />
-        <meta name="twitter:label2" content="Region" />
-        <meta name="twitter:data2" content="India, Bangladesh, Pakistan, Nepal, Asia, Global" />
         {/* Structured Data (JSON-LD) */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
         {/* Organization Structured Data */}
@@ -101,13 +98,13 @@ export default function RootLayout({ children }) {
           "url": SEO.url,
           "logo": SEO.image,
           "email": "info@shilpomarket.com",
-          "telephone": "+91-0000000000",
+          "telephone": "+8801401658685",
           "address": {
             "@type": "PostalAddress",
-            "addressCountry": "IN",
-            "addressRegion": "Asia",
-            "addressLocality": "Kolkata",
-            "postalCode": "700000"
+            "addressCountry": "BD",
+            "addressRegion": "Dhaka",
+            "addressLocality": "Dhaka",
+            "postalCode": "1000"
           },
           "sameAs": [
             "https://facebook.com/shilpomarket",
@@ -130,16 +127,19 @@ export default function RootLayout({ children }) {
               "@type": "ListItem",
               "position": 2,
               "name": "Marketplace",
-              "item": `${SEO.url}/marketplace`
+              "item": `${SEO.url}/products`
             }
           ]
         }) }} />
       </head>
       <body className="antialiased">
-        <AuthProvider>
-          {children}
-          <Toaster />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            {children}
+            <PWAInstaller />
+            <Toaster />
+          </AuthProvider>
+        </LanguageProvider>
         {/* <Chatbot /> */}
       </body>
     </html>

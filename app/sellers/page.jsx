@@ -2,16 +2,23 @@
 import { useState, useEffect } from "react"
 import SellersHeader from "../../components/SellersHeader"
 import Link from "next/link"
+import DirectContactButtons from "../../components/DirectContactButtons"
+import AssistedTradeModal from "../../components/AssistedTradeModal"
+import { useLanguage } from "../../contexts/LanguageContext"
+import { ShieldCheck, Building2, CheckCircle2, Phone } from "lucide-react"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = ''; // relative path
 
 export default function SellersPage() {
+  const { isBn, toBanglaNumber } = useLanguage();
   const [selectedCountry, setSelectedCountry] = useState("all")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [sortBy, setSortBy] = useState("rating")
   const [showFilters, setShowFilters] = useState(false)
   const [suppliers, setSuppliers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isAssistedModalOpen, setIsAssistedModalOpen] = useState(false)
+  const [selectedSupplierForInspection, setSelectedSupplierForInspection] = useState('')
 
   const countries = [
     { id: "all", name: "All Countries", count: 0 },
@@ -42,7 +49,7 @@ export default function SellersPage() {
   const fetchSuppliers = async () => {
     try {
       setLoading(true);
-      let url = `${API_BASE_URL}/api/suppliers?`;
+      let url = `/api/suppliers?`;
       
       if (selectedCategory !== 'all') {
         url += `category=${selectedCategory}&`;
@@ -170,6 +177,40 @@ export default function SellersPage() {
 
             {/* Main Content */}
             <div className="flex-1">
+              {/* Assisted Trade Verification Hero Banner */}
+              <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-2xl p-5 mb-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-300 shrink-0 text-xl font-bold">
+                    🛡️
+                  </div>
+                  <div>
+                    <div className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-300 mb-1">
+                      <span>✓ {isBn ? "শিল্পমার্কেট নিশ্চিত ট্রেড" : "ShilpoMarket Assisted Trade"}</span>
+                    </div>
+                    <h3 className="text-sm sm:text-base font-black text-white">
+                      {isBn ? "বড় চালানে সরেজমিনে ফ্যাক্টরি ভিজিট ও কোয়ালিটি টেস্ট চান?" : "Need on-site factory verification for bulk orders?"}
+                    </h3>
+                    <p className="text-xs text-slate-300 mt-0.5">
+                      {isBn
+                        ? "আমাদের ট্রেড এজেন্ট আপনার হয়ে সাপ্লায়ারের মিলে গিয়ে মাল ও ওজন সরেজমিনে পরিদর্শন করবে।"
+                        : "Our trade agent physically inspects stock, volume, and quality before you complete payment."}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedSupplierForInspection('');
+                    setIsAssistedModalOpen(true);
+                  }}
+                  className="shrink-0 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>{isBn ? "প্রতিনিধি বুক করুন" : "Book Trade Agent"}</span>
+                </button>
+              </div>
+
               {/* Header */}
               <div className="bg-white rounded-lg shadow p-4 mb-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -234,11 +275,16 @@ export default function SellersPage() {
                               <h3 className="text-base font-semibold text-gray-900">{supplier.companyName || `${supplier.firstName} ${supplier.lastName}`}</h3>
                               <p className="text-xs text-gray-600 mt-0.5">{supplier.address || 'Location not specified'}</p>
                             </div>
-                            {(supplier.isVerified || supplier.isApproved) && (
-                              <span className="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded-full font-medium">
-                                ✓ Verified
+                            <div className="flex flex-col items-end gap-1">
+                              {(supplier.isVerified || supplier.isApproved) && (
+                                <span className="bg-blue-100 text-blue-800 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
+                                  ✓ {isBn ? "লাইসেন্স যাচাইকৃত" : "Verified"}
+                                </span>
+                              )}
+                              <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                                🏭 {isBn ? "মিল পরিদর্শিত" : "Inspected"}
                               </span>
-                            )}
+                            </div>
                           </div>
                           <div className="mt-2 flex items-center space-x-3 text-xs text-gray-600">
                             <div className="flex items-center">
@@ -247,7 +293,7 @@ export default function SellersPage() {
                               <span className="ml-1">({supplier.reviews || 0})</span>
                             </div>
                             <span>•</span>
-                            <span>{supplier.productsCount || 0} Products</span>
+                            <span>{supplier.productsCount || 0} {isBn ? "টি কাঁচামাল" : "Products"}</span>
                           </div>
                         </div>
                       </div>
@@ -257,16 +303,36 @@ export default function SellersPage() {
                       <div className="mt-3 flex items-center justify-between">
                         <div className="flex items-center space-x-2 text-xs text-gray-600">
                           <span className="bg-gray-100 px-2 py-1 rounded">
-                            Response: {supplier.responseTime || '< 2 hours'}
+                            {isBn ? "রেসপন্স: " : "Response: "}{supplier.responseTime || '< 2 hours'}
                           </span>
                           <span className="bg-gray-100 px-2 py-1 rounded">
-                            Orders: {supplier.totalOrders || '1000+'}
+                            {isBn ? "অর্ডার: " : "Orders: "}{supplier.totalOrders || '1000+'}
                           </span>
                         </div>
                       </div>
-                      <Link href={`/sellers/${supplier._id}`}>
-                        <button className="mt-3 w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-medium hover:bg-blue-700 transition">
-                          View Profile
+                      {/* 1-Tap Call and WhatsApp */}
+                      <DirectContactButtons
+                        phone={supplier.phone}
+                        supplierName={supplier.companyName || `${supplier.firstName} ${supplier.lastName}`}
+                        variant="card"
+                      />
+
+                      {/* On-Site Mill Inspection Booking */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedSupplierForInspection(supplier.companyName || `${supplier.firstName} ${supplier.lastName}`);
+                          setIsAssistedModalOpen(true);
+                        }}
+                        className="w-full mt-2 py-1.5 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        <span>{isBn ? "এই মিল পরিদর্শনের এজেন্ট বুক করুন" : "Book Mill Inspection Agent"}</span>
+                      </button>
+
+                      <Link href={`/sellers/${supplier._id}`} className="block mt-2">
+                        <button className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 py-1.5 rounded-lg text-xs font-semibold transition border border-slate-200">
+                          {isBn ? "প্রোফাইল ও সকল পণ্য দেখুন (View Profile)" : "View Profile & Products"}
                         </button>
                       </Link>
                     </div>
@@ -277,6 +343,13 @@ export default function SellersPage() {
           </div>
         </div>
       </div>
+
+      {/* Assisted Trade Verification Modal */}
+      <AssistedTradeModal
+        isOpen={isAssistedModalOpen}
+        onClose={() => setIsAssistedModalOpen(false)}
+        initialMaterial={selectedSupplierForInspection}
+      />
     </div>
   )
 }

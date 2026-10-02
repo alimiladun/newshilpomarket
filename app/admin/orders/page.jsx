@@ -1,8 +1,8 @@
-"use client"
+﻿"use client"
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = ''; // relative path
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -35,7 +35,7 @@ export default function AdminOrdersPage() {
         return;
       }
 
-      let url = `${API_BASE_URL}/api/admin/orders?`;
+      let url = `/api/admin/orders?`;
       if (filter !== 'all') url += `status=${filter}&`;
       if (searchTerm) url += `search=${searchTerm}`;
 
@@ -108,7 +108,7 @@ export default function AdminOrdersPage() {
   const submitQuote = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${API_BASE_URL}/api/admin/orders/${selectedOrder._id}`, {
+      const response = await fetch(`/api/admin/orders/${selectedOrder._id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -148,7 +148,7 @@ export default function AdminOrdersPage() {
         if (!trackingNumber) return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/orders/${orderId}`, {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

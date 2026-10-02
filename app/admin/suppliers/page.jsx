@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Search, CheckCircle, XCircle, Clock, Mail, Phone, Building, FileText, Calendar, Globe, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = ''; // relative path
 
 export default function AdminSuppliersPage() {
   const router = useRouter();
@@ -40,9 +40,9 @@ export default function AdminSuppliersPage() {
     try {
       setLoading(true);
       const adminToken = localStorage.getItem('adminToken');
-      console.log('Fetching suppliers from:', `${API_BASE_URL}/api/admin/users?type=suppliers`);
+      console.log('Fetching suppliers from:', `/api/admin/users?type=suppliers`);
       
-      const response = await fetch(`${API_BASE_URL}/api/admin/users?type=suppliers`, {
+      const response = await fetch(`/api/admin/users?type=suppliers`, {
         headers: {
           'Authorization': `Bearer ${adminToken}`,
         },
@@ -97,7 +97,7 @@ export default function AdminSuppliersPage() {
       setProcessingId(supplierId);
       const adminToken = localStorage.getItem('adminToken');
       
-      const response = await fetch(`${API_BASE_URL}/api/admin/suppliers/approve`, {
+      const response = await fetch(`/api/admin/suppliers/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ export default function AdminSuppliersPage() {
       setProcessingId(supplierId);
       const adminToken = localStorage.getItem('adminToken');
       
-      const response = await fetch(`${API_BASE_URL}/api/admin/suppliers/approve`, {
+      const response = await fetch(`/api/admin/suppliers/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useRef, useEffect } from 'react'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import VoiceSearchButton from './VoiceSearchButton'
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -192,20 +193,24 @@ const Chatbot = () => {
 
           {/* Input */}
           <div className="p-4 border-t border-gray-200 bg-white">
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-2">
               <textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask me about ShilpoMarket services..."
+                placeholder="Ask me or speak in Bangla..."
                 className="flex-1 resize-none border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 rows="1"
                 disabled={isLoading}
               />
+              <VoiceSearchButton
+                onResult={(text) => setInputValue(prev => prev ? `${prev} ${text}` : text)}
+                className="p-2 border border-gray-200 rounded-xl hover:bg-blue-50 text-gray-500"
+              />
               <button
                 onClick={sendMessage}
                 disabled={isLoading || !inputValue.trim()}
-                className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 disabled:from-gray-400 disabled:to-gray-500 text-white p-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="bg-blue-700 hover:bg-blue-800 disabled:bg-gray-300 text-white p-2.5 rounded-xl transition-all duration-200 focus:outline-none shrink-0"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

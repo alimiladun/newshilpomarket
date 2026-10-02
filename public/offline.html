@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>অফলাইন | শিল্পমার্কেট</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    body {
+      background-color: #f8fafc;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      text-align: center;
+    }
+    .card {
+      background: #ffffff;
+      max-width: 440px;
+      width: 100%;
+      padding: 36px 24px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+      border: 1px solid #e2e8f0;
+    }
+    .logo {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 20px;
+      border-radius: 16px;
+      background: #eff6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 15px;
+      color: #64748b;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .btn-retry {
+      display: block;
+      width: 100%;
+      background: #1d4ed8;
+      color: #ffffff;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: background 0.2s;
+    }
+    .btn-retry:hover {
+      background: #1e40af;
+    }
+    .btn-call {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 12px;
+      text-decoration: none;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-call:hover {
+      background: #e2e8f0;
+    }
+    .hint {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">📡</div>
+    <h1>ইন্টারনেট সংযোগ পাওয়া যাচ্ছে না</h1>
+    <p>আপনার মোবাইল ডেটা বা ওয়াইফাই সংযোগ পরীক্ষা করে পুনরায় চেষ্টা করুন। জরুরি প্রয়োজনে আমাদের হটলাইনে সরাসরি কল করতে পারেন।</p>
+    
+    <button class="btn-retry" onclick="window.location.reload()">পুনরায় চেষ্টা করুন (Reload)</button>
+    <a href="tel:+8801401658685" class="btn-call">
+      <span>📞 হটলাইন কল: ০১৪০১-৬৫৮৬৮৫</span>
+    </a>
+
+    <div class="hint">শিল্পমার্কেট — বাংলাদেশের ১ নম্বর শিল্প কাঁচামালের পাইকারি বাজার</div>
+  </div>
+</body>
+</html>

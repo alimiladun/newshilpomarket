@@ -15,15 +15,19 @@ const buyerSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'Email is required'],
+    required: false,
     unique: true,
+    sparse: true,   // allows multiple null values
     lowercase: true,
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
   },
   phone: {
     type: String,
-    trim: true
+    required: [true, 'Phone number is required'],
+    trim: true,
+    unique: true,
+    sparse: true,
   },
   password: {
     type: String,
@@ -100,7 +104,8 @@ const buyerSchema = new mongoose.Schema({
 });
 
 // Comprehensive indexes for super-fast query performance
-buyerSchema.index({ email: 1 }, { unique: true });
+buyerSchema.index({ email: 1 }, { unique: true, sparse: true });
+buyerSchema.index({ phone: 1 }, { unique: true, sparse: true });
 buyerSchema.index({ isActive: 1, isVerified: 1, createdAt: -1 });
 buyerSchema.index({ companyName: 1 });
 buyerSchema.index({ tradeLicense: 1 });
@@ -144,5 +149,9 @@ buyerSchema.methods.getPublicProfile = function() {
   delete buyer.resetPasswordExpire;
   return buyer;
 };
+
+if (process.env.NODE_ENV === 'development' && mongoose.models.Buyer) {
+  delete mongoose.models.Buyer;
+}
 
 export default mongoose.models.Buyer || mongoose.model('Buyer', buyerSchema);

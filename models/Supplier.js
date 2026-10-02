@@ -15,15 +15,19 @@ const supplierSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'Email is required'],
+    required: false,
     unique: true,
+    sparse: true,   // allows multiple null values
     lowercase: true,
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
   },
   phone: {
     type: String,
-    trim: true
+    required: [true, 'Phone number is required'],
+    trim: true,
+    unique: true,
+    sparse: true,
   },
   password: {
     type: String,
@@ -67,7 +71,7 @@ const supplierSchema = new mongoose.Schema({
   
   // Categories (stored as numeric IDs from hardcoded data)
   interestedCategories: [{
-    type: Number
+    type: String
   }],
   
   // Profile Image
@@ -87,7 +91,7 @@ const supplierSchema = new mongoose.Schema({
   },
   isApproved: {
     type: Boolean,
-    default: false
+    default: true   // auto-approved; admin can revoke if needed
   },
   approvedBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -126,7 +130,8 @@ supplierSchema.methods.matchPassword = async function(enteredPassword) {
 };
 
 // Comprehensive indexes for super-fast query performance
-supplierSchema.index({ email: 1 }, { unique: true });
+supplierSchema.index({ email: 1 }, { unique: true, sparse: true });
+supplierSchema.index({ phone: 1 }, { unique: true, sparse: true });
 supplierSchema.index({ isApproved: 1, isActive: 1, createdAt: -1 }); // Active approved suppliers
 supplierSchema.index({ isApproved: 1, isVerified: 1, isActive: 1 }); // Verified suppliers
 supplierSchema.index({ interestedCategories: 1, isApproved: 1 }); // Category filter
@@ -157,5 +162,9 @@ supplierSchema.methods.getPublicProfile = function() {
   delete supplier.resetPasswordExpire;
   return supplier;
 };
+
+if (process.env.NODE_ENV === 'development' && mongoose.models.Supplier) {
+  delete mongoose.models.Supplier;
+}
 
 export default mongoose.models.Supplier || mongoose.model('Supplier', supplierSchema);
