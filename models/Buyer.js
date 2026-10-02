@@ -104,8 +104,6 @@ const buyerSchema = new mongoose.Schema({
 });
 
 // Comprehensive indexes for super-fast query performance
-buyerSchema.index({ email: 1 }, { unique: true, sparse: true });
-buyerSchema.index({ phone: 1 }, { unique: true, sparse: true });
 buyerSchema.index({ isActive: 1, isVerified: 1, createdAt: -1 });
 buyerSchema.index({ companyName: 1 });
 buyerSchema.index({ tradeLicense: 1 });

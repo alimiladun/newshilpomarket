@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -32,7 +32,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
-export default function UnifiedMerchantDashboard() {
+function UnifiedMerchantDashboardContent() {
   const { user, loading: authLoading, logout } = useAuth();
   const { language } = useLanguage();
   const isBn = language === 'bn';
@@ -641,5 +641,20 @@ export default function UnifiedMerchantDashboard() {
         <p>শিল্পমার্কেট ট্রেডার ড্যাশবোর্ড • সর্বস্বত্ব সংরক্ষিত ২০২৬ • হেল্পলাইন: ০১৪০১-৬৫৮৬৮৫</p>
       </footer>
     </div>
+  );
+}
+
+export default function UnifiedMerchantDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-12 h-12 border-4 border-blue-700 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-slate-600 font-semibold">ড্যাশবোর্ড লোড হচ্ছে...</p>
+        </div>
+      </div>
+    }>
+      <UnifiedMerchantDashboardContent />
+    </Suspense>
   );
 }

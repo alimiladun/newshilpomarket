@@ -130,8 +130,6 @@ supplierSchema.methods.matchPassword = async function(enteredPassword) {
 };
 
 // Comprehensive indexes for super-fast query performance
-supplierSchema.index({ email: 1 }, { unique: true, sparse: true });
-supplierSchema.index({ phone: 1 }, { unique: true, sparse: true });
 supplierSchema.index({ isApproved: 1, isActive: 1, createdAt: -1 }); // Active approved suppliers
 supplierSchema.index({ isApproved: 1, isVerified: 1, isActive: 1 }); // Verified suppliers
 supplierSchema.index({ interestedCategories: 1, isApproved: 1 }); // Category filter

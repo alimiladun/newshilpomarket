@@ -1,12 +1,12 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "../contexts/AuthContext"
 
 import VoiceSearchButton from "./VoiceSearchButton"
 
-export default function ProductHeader() {
+function ProductHeaderContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialSearch = searchParams?.get("search") || ""
@@ -425,5 +425,13 @@ export default function ProductHeader() {
         )}
       </div>
     </header>
+  )
+}
+
+export default function ProductHeader() {
+  return (
+    <Suspense fallback={<div className="h-16 bg-white border-b border-gray-200" />}>
+      <ProductHeaderContent />
+    </Suspense>
   )
 }

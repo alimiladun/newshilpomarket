@@ -114,7 +114,6 @@ insightSchema.pre('save', async function (next) {
 });
 
 // Indexes for better query performance
-insightSchema.index({ slug: 1 });
 insightSchema.index({ status: 1, publishDate: -1 });
 insightSchema.index({ category: 1 });
 insightSchema.index({ featured: 1 });

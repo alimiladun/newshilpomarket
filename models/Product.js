@@ -199,7 +199,6 @@ productSchema.index({ name: 'text', description: 'text', tags: 'text' }, {
 // Supporting indexes
 productSchema.index({ isActive: 1, price: 1 });       // Price sort without category filter
 productSchema.index({ isActive: 1, rating: -1 });      // Rating sort without category filter
-productSchema.index({ slug: 1 }, { unique: true, sparse: true }); // Slug uniqueness
 
 // Generate slug before saving
 productSchema.pre('save', function(next) {
